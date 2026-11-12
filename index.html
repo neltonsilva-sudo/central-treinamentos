@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central de Treinamentos</title>
+<meta name="description" content="Simuladores de Segurança do Trabalho: iluminância, LOTO, detector multigás e inspeção SST.">
+<meta name="theme-color" content="#0b1020">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%233b82f6'/%3E%3Cpath d='M32 12l16 6v12c0 11-7 18-16 22-9-4-16-11-16-22V18z' fill='%23fff'/%3E%3Cpath d='M25 32l5 5 10-11' stroke='%233b82f6' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6fb; --bg2:#e9eef8; --surface:#ffffff; --surface2:#f7f9fd;
+  --text:#0f172a; --muted:#5b6478; --line:#e3e8f2; --shadow:0 1px 2px rgba(15,23,42,.05),0 8px 24px rgba(15,23,42,.07);
+  --shadow-hover:0 2px 4px rgba(15,23,42,.06),0 18px 40px rgba(15,23,42,.13);
+  --ok:#16a34a; --new:#2563eb; --chip:#eef2fb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1020; --bg2:#10172b; --surface:#131a2e; --surface2:#182039;
+    --text:#e8ecf6; --muted:#97a1b9; --line:#232c47; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+    --shadow-hover:0 2px 4px rgba(0,0,0,.35),0 22px 48px rgba(0,0,0,.5);
+    --ok:#4ade80; --new:#60a5fa; --chip:#1c2540;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1020; --bg2:#10172b; --surface:#131a2e; --surface2:#182039;
+  --text:#e8ecf6; --muted:#97a1b9; --line:#232c47; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  --shadow-hover:0 2px 4px rgba(0,0,0,.35),0 22px 48px rgba(0,0,0,.5);
+  --ok:#4ade80; --new:#60a5fa; --chip:#1c2540;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; min-height:100vh; color:var(--text);
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(59,130,246,.16), transparent 60%),
+    radial-gradient(900px 420px at 95% 0%, rgba(168,85,247,.12), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;
+}
+a{color:inherit}
+.wrap{max-width:1180px; margin:0 auto; padding:0 20px}
+
+/* Cabeçalho */
+header{padding:28px 0 8px}
+.top{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.brand{display:flex; align-items:center; gap:12px; text-decoration:none}
+.logo{width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+  background:linear-gradient(135deg,#3b82f6,#8b5cf6); box-shadow:0 6px 18px rgba(59,130,246,.35)}
+.brand b{font-size:15px; letter-spacing:.2px}
+.brand small{display:block; font-size:12px; color:var(--muted); font-weight:500}
+.icon-btn{border:1px solid var(--line); background:var(--surface); color:var(--text);
+  width:40px; height:40px; border-radius:12px; display:grid; place-items:center; cursor:pointer}
+.icon-btn:hover{background:var(--surface2)}
+.icon-btn:focus-visible,.open:focus-visible,.chip:focus-visible{outline:3px solid rgba(59,130,246,.55); outline-offset:2px}
+
+.hero{padding:40px 0 26px}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--new); background:var(--chip); padding:6px 12px; border-radius:999px}
+.eyebrow i{width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 4px rgba(22,163,74,.18)}
+h1{font-size:clamp(30px,5vw,48px); line-height:1.08; margin:16px 0 12px; letter-spacing:-.02em; font-weight:800}
+h1 span{background:linear-gradient(90deg,#3b82f6,#8b5cf6 60%,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent}
+.lead{max-width:640px; color:var(--muted); font-size:16px; line-height:1.6; margin:0}
+
+.toolbar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:26px 0 18px}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{border:1px solid var(--line); background:var(--surface); color:var(--text); font:inherit; font-size:13px; font-weight:600;
+  padding:8px 14px; border-radius:999px; cursor:pointer; transition:.15s}
+.chip:hover{background:var(--surface2)}
+.chip[aria-pressed="true"]{background:var(--text); color:var(--bg); border-color:var(--text)}
+.sync{font-size:13px; color:var(--muted); display:flex; align-items:center; gap:8px}
+.sync button{border:0; background:none; color:var(--new); font:inherit; font-weight:600; cursor:pointer; padding:4px}
+.spin{width:14px; height:14px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--new); display:none; animation:r .8s linear infinite}
+.sync.busy .spin{display:inline-block}
+@keyframes r{to{transform:rotate(360deg)}}
+
+/* Cards */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:20px; padding-bottom:40px}
+.card{position:relative; display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--line);
+  border-radius:20px; overflow:hidden; box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease}
+.card:hover{transform:translateY(-4px); box-shadow:var(--shadow-hover)}
+.card[hidden]{display:none}
+.cover{position:relative; height:170px; overflow:hidden; background:var(--g)}
+.cover::after{content:""; position:absolute; inset:0;
+  background:radial-gradient(120% 80% at 100% 0%, rgba(255,255,255,.22), transparent 55%)}
+.cover svg.art{position:absolute; right:-6px; bottom:-8px; width:210px; height:auto; transition:transform .35s ease}
+.card:hover .cover svg.art{transform:scale(1.05) rotate(-1.5deg)}
+.cover .num{position:absolute; left:18px; bottom:12px; font-size:54px; font-weight:800; color:rgba(255,255,255,.22); line-height:1}
+.badges{position:absolute; top:12px; left:12px; right:12px; display:flex; gap:6px; flex-wrap:wrap; z-index:1}
+.badge{font-size:11px; font-weight:700; padding:5px 10px; border-radius:999px; background:rgba(255,255,255,.92); color:#0f172a;
+  display:inline-flex; align-items:center; gap:6px; backdrop-filter:blur(6px)}
+.badge.new{background:#fff; color:#1d4ed8}
+.badge.new i{width:6px; height:6px; border-radius:50%; background:#2563eb; animation:pulse 1.6s infinite}
+.badge.upd{background:#fde047; color:#422006}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,99,235,.55)}100%{box-shadow:0 0 0 8px rgba(37,99,235,0)}}
+.body{padding:18px 18px 18px; display:flex; flex-direction:column; gap:10px; flex:1}
+.kicker{font-size:12px; font-weight:700; color:var(--accent); letter-spacing:.04em; text-transform:uppercase}
+.card h2{margin:0; font-size:20px; letter-spacing:-.01em; line-height:1.25}
+.desc{margin:0; color:var(--muted); font-size:14px; line-height:1.55}
+.tags{display:flex; flex-wrap:wrap; gap:6px}
+.tag{font-size:11.5px; font-weight:600; background:var(--chip); color:var(--text); padding:4px 9px; border-radius:8px}
+.meta{margin-top:auto; padding-top:12px; border-top:1px dashed var(--line); display:grid; gap:6px; font-size:12.5px; color:var(--muted)}
+.meta .row{display:flex; align-items:center; gap:8px; min-width:0}
+.meta .row span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.dot{width:8px; height:8px; border-radius:50%; flex:none; background:var(--line)}
+.dot.ok{background:var(--ok)}
+.dot.err{background:#f59e0b}
+.change{display:block; color:var(--text); font-size:12.5px; line-height:1.45; background:var(--surface2); border-radius:10px; padding:8px 10px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.change b{color:var(--muted); font-weight:600}
+.open{display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; font-weight:700; font-size:14.5px;
+  color:#fff; background:var(--accent); padding:12px 16px; border-radius:12px; margin-top:4px; transition:filter .15s, transform .15s}
+.open:hover{filter:brightness(1.08)}
+.open:active{transform:scale(.98)}
+.open svg{transition:transform .2s}
+.open:hover svg{transform:translateX(3px)}
+
+/* Esqueleto enquanto verifica */
+.sk{display:inline-block; height:10px; width:140px; border-radius:6px; background:linear-gradient(90deg,var(--line),var(--surface2),var(--line)); background-size:200% 100%; animation:sk 1.2s infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+footer{border-top:1px solid var(--line); padding:22px 0 36px; color:var(--muted); font-size:13px; line-height:1.6}
+footer .wrap{display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px}
+
+.toast{position:fixed; left:50%; bottom:20px; transform:translate(-50%,120px); background:var(--text); color:var(--bg); padding:12px 18px;
+  border-radius:12px; font-size:14px; font-weight:600; box-shadow:var(--shadow-hover); transition:transform .3s ease; z-index:10; max-width:calc(100% - 32px)}
+.toast.show{transform:translate(-50%,0)}
+
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .hero{padding:28px 0 18px}
+  .cover{height:150px}
+  .cover svg.art{width:180px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap top">
+    <a class="brand" href="./">
+      <span class="logo" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2.5l7.5 3v5.6c0 5-3.3 8.5-7.5 10.4-4.2-1.9-7.5-5.4-7.5-10.4V5.5z" fill="#fff"/><path d="M8.6 12.2l2.3 2.3 4.6-5" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span><b>Central de Treinamentos</b><small>Segurança do Trabalho</small></span>
+    </a>
+    <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <span class="eyebrow"><i></i> Simuladores sempre na versão mais recente</span>
+    <h1>Treine na prática com <span>simuladores 3D</span></h1>
+    <p class="lead">Escolha um treinamento abaixo. Cada card abre o simulador publicado, e a central confere sozinha quando ele foi atualizado. Assim você sempre entra na versão mais nova.</p>
+  </section>
+
+  <div class="toolbar">
+    <div class="chips" role="group" aria-label="Filtrar treinamentos" id="chips"></div>
+    <div class="sync" id="sync" aria-live="polite"><span class="spin"></span><span id="syncText">Verificando atualizações…</span><button type="button" id="refresh">Atualizar</button></div>
+  </div>
+
+  <section class="grid" id="grid" aria-label="Treinamentos"></section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Central de Treinamentos · Segurança do Trabalho</span>
+    <span>As versões são verificadas a cada 5 minutos enquanto a página estiver aberta.</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ==========================================================
+   LISTA DE TREINAMENTOS
+   Para incluir um novo treinamento, copie um bloco e ajuste.
+   "repo" é o nome do repositório no GitHub (usuário OWNER).
+   ========================================================== */
+const OWNER = 'neltonsilva-sudo';
+const TRAININGS = [
+  {
+    id: 'iluminancia',
+    repo: 'simulador-iluminancia-nho11',
+    url: 'https://neltonsilva-sudo.github.io/simulador-iluminancia-nho11/',
+    title: 'Iluminância',
+    kicker: 'NHO-11 · Fundacentro',
+    desc: 'Monte a malha de pontos da NHO-11, meça com o luxímetro e calcule a iluminância média da sala comparando com os critérios da norma.',
+    tags: ['Luxímetro', 'Malha de pontos', 'Cálculo de Ē'],
+    cat: 'Higiene ocupacional',
+    accent: '#d97706',
+    g: 'linear-gradient(135deg,#f59e0b 0%,#f97316 55%,#ea580c 100%)',
+    art: 'lamp'
+  },
+  {
+    id: 'loto',
+    repo: 'simulador-loto',
+    url: 'https://neltonsilva-sudo.github.io/simulador-loto/',
+    title: 'LOTO',
+    kicker: 'Controle de energias perigosas',
+    desc: 'Pratique o bloqueio e a etiquetagem passo a passo: identificar as fontes de energia, isolar, bloquear, etiquetar e testar a energia zero.',
+    tags: ['Bloqueio', 'Etiquetagem', 'Energia zero'],
+    cat: 'Máquinas e eletricidade',
+    accent: '#dc2626',
+    g: 'linear-gradient(135deg,#ef4444 0%,#dc2626 50%,#9f1239 100%)',
+    art: 'lock'
+  },
+  {
+    id: 'multigas',
+    repo: 'gemeo-detector-multigas',
+    url: 'https://neltonsilva-sudo.github.io/gemeo-detector-multigas/',
+    title: 'Detector Multigás',
+    kicker: 'Avaliação de atmosfera',
+    desc: 'Opere um detector multigás com bomba: ligue, faça o teste de resposta e avalie a atmosfera lendo O₂, LEL, CO e H₂S antes da entrada.',
+    tags: ['O₂ · LEL · CO · H₂S', 'Teste de resposta', 'Espaço confinado'],
+    cat: 'Higiene ocupacional',
+    accent: '#059669',
+    g: 'linear-gradient(135deg,#10b981 0%,#059669 50%,#0f766e 100%)',
+    art: 'gas'
+  },
+  {
+    id: 'inspecao',
+    repo: 'inspecao-sst',
+    url: 'https://neltonsilva-sudo.github.io/inspecao-sst/',
+    title: 'Inspeção SST',
+    kicker: 'NRs · 5S · PDCA',
+    desc: 'Faça inspeções de segurança com a câmera do celular, aponte as não conformidades com base nas NRs e organize o plano de ação.',
+    tags: ['Câmera', 'Não conformidades', 'Plano de ação'],
+    cat: 'Gestão de SST',
+    accent: '#4f46e5',
+    g: 'linear-gradient(135deg,#6366f1 0%,#4f46e5 50%,#7c3aed 100%)',
+    art: 'cam'
+  }
+];
+
+/* Ilustrações dos cards (SVG próprio, sem imagens externas) */
+const ART = {
+  lamp: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
+    <g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5">
+      ${[0,1,2,3,4].map(i=>`<path d="M${30+i*36} 150 L${50+i*36} 110"/>`).join('')}
+      <path d="M22 150 H205 M36 130 H200 M48 110 H196"/>
+    </g>
+    <g fill="#fff">${[[58,140],[94,140],[130,140],[166,140],[70,120],[106,120],[142,120],[178,120]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2"/>`).join('')}</g>
+    <path d="M78 52 L44 118 H206 L172 52Z" fill="rgba(255,255,255,.22)"/>
+    <rect x="70" y="36" width="110" height="18" rx="9" fill="#fff"/>
+    <rect x="80" y="41" width="90" height="8" rx="4" fill="#fde68a"/>
+    <path d="M125 8 V36" stroke="#fff" stroke-width="3"/>
+  </svg>`,
+  lock: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
+    <rect x="30" y="20" width="96" height="140" rx="10" fill="rgba(255,255,255,.18)"/>
+    <rect x="44" y="40" width="68" height="40" rx="6" fill="rgba(255,255,255,.25)"/>
+    <circle cx="78" cy="112" r="16" fill="rgba(255,255,255,.3)"/>
+    <path d="M78 112 L92 104" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M128 66 v-14 a22 22 0 0 1 44 0 v14" fill="none" stroke="#fff" stroke-width="9"/>
+    <rect x="116" y="64" width="68" height="56" rx="10" fill="#fff"/>
+    <circle cx="150" cy="86" r="7" fill="#dc2626"/><rect x="147" y="88" width="6" height="16" rx="3" fill="#dc2626"/>
+    <path d="M168 120 l10 10" stroke="#fff" stroke-width="2"/>
+    <g transform="translate(166 128) rotate(12)">
+      <rect width="44" height="34" rx="5" fill="#fde047"/><circle cx="8" cy="8" r="3" fill="#a16207"/>
+      <rect x="6" y="16" width="32" height="4" rx="2" fill="#a16207"/><rect x="6" y="24" width="22" height="4" rx="2" fill="#a16207"/>
+    </g>
+  </svg>`,
+  gas: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
+    <path d="M20 140 C50 120 60 150 90 130 S140 140 160 120" stroke="rgba(255,255,255,.3)" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <path d="M10 112 C40 96 52 120 80 104" stroke="rgba(255,255,255,.2)" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <rect x="104" y="14" width="88" height="148" rx="18" fill="#fff"/>
+    <rect x="104" y="14" width="88" height="22" rx="11" fill="#facc15"/>
+    <rect x="116" y="46" width="64" height="54" rx="6" fill="#0f172a"/>
+    <g font-family="monospace" font-size="10" font-weight="700" fill="#4ade80">
+      <text x="121" y="60">O₂ 20.9</text><text x="121" y="73">LEL 0</text><text x="121" y="86">CO 0</text><text x="121" y="97" fill="#86efac">H₂S 0</text>
+    </g>
+    <circle cx="132" cy="122" r="9" fill="#059669"/><circle cx="164" cy="122" r="9" fill="#e2e8f0"/>
+    <rect x="124" y="140" width="48" height="8" rx="4" fill="#e2e8f0"/>
+  </svg>`,
+  cam: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
+    <rect x="96" y="6" width="96" height="162" rx="18" fill="#fff"/>
+    <rect x="104" y="22" width="80" height="120" rx="8" fill="#1e1b4b"/>
+    <path d="M110 30 h14 M110 30 v14 M178 30 h-14 M178 30 v14 M110 134 h14 M110 134 v-14 M178 134 h-14 M178 134 v-14" stroke="#a5b4fc" stroke-width="3" fill="none"/>
+    <path d="M144 58 L170 104 H118Z" fill="#facc15"/><rect x="142" y="72" width="4" height="16" rx="2" fill="#1e1b4b"/><circle cx="144" cy="95" r="2.6" fill="#1e1b4b"/>
+    <circle cx="144" cy="154" r="5" fill="#e2e8f0"/>
+    <g transform="translate(26 66)">
+      <rect width="62" height="78" rx="8" fill="rgba(255,255,255,.22)"/>
+      ${[0,1,2].map(i=>`<rect x="10" y="${14+i*20}" width="10" height="10" rx="3" fill="#fff"/><rect x="26" y="${16+i*20}" width="26" height="6" rx="3" fill="rgba(255,255,255,.7)"/>`).join('')}
+      <path d="M12 19 l3 3 5-6 M12 39 l3 3 5-6" stroke="#4f46e5" stroke-width="2" fill="none"/>
+    </g>
+  </svg>`
+};
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('ct.'+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('ct.'+k, JSON.stringify(v)); }catch(e){} }
+};
+const fmtDate = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+function ago(d){
+  const s = Math.max(0,(Date.now()-d.getTime())/1000);
+  if(s < 60) return 'agora mesmo';
+  const m = s/60, h = m/60, dd = h/24;
+  if(m < 60) return `há ${Math.round(m)} min`;
+  if(h < 24) return `há ${Math.round(h)} h`;
+  if(dd < 2) return 'ontem';
+  if(dd < 30) return `há ${Math.round(dd)} dias`;
+  const mo = Math.round(dd/30); return mo <= 1 ? 'há 1 mês' : `há ${mo} meses`;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function withVersion(url, v){
+  const u = new URL(url);
+  u.searchParams.set('v', v);
+  return u.toString();
+}
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),4200); }
+
+/* ---------- tema ---------- */
+(function(){
+  const saved = store.get('theme', null);
+  if(saved) document.documentElement.dataset.theme = saved;
+  $('#theme').addEventListener('click', ()=>{
+    const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next; store.set('theme', next);
+  });
+})();
+
+/* ---------- filtros ---------- */
+const cats = ['Todos', ...new Set(TRAININGS.map(t=>t.cat))];
+let curCat = 'Todos';
+$('#chips').innerHTML = cats.map(c=>`<button type="button" class="chip" aria-pressed="${c===curCat}" data-cat="${esc(c)}">${esc(c)}</button>`).join('');
+$('#chips').addEventListener('click', e=>{
+  const b = e.target.closest('.chip'); if(!b) return;
+  curCat = b.dataset.cat;
+  document.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed', x===b));
+  document.querySelectorAll('.card').forEach(c=>{ c.hidden = !(curCat==='Todos' || c.dataset.cat===curCat); });
+});
+
+/* ---------- cards ---------- */
+const seen = store.get('seen', {});      // versão que o usuário já abriu
+const state = {};                         // versão atual de cada treinamento
+
+function render(){
+  $('#grid').innerHTML = TRAININGS.map((t,i)=>`
+    <article class="card" id="c-${t.id}" data-cat="${esc(t.cat)}" style="--g:${t.g};--accent:${t.accent}">
+      <div class="cover">
+        <div class="badges" data-badges></div>
+        <span class="num" aria-hidden="true">0${i+1}</span>
+        ${ART[t.art]||''}
+      </div>
+      <div class="body">
+        <div class="kicker">${esc(t.kicker)}</div>
+        <h2>${esc(t.title)}</h2>
+        <p class="desc">${esc(t.desc)}</p>
+        <div class="tags">${t.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
+        <div class="meta">
+          <div class="row"><i class="dot" data-dot></i><span data-upd><span class="sk"></span></span></div>
+          <span class="change" data-change hidden></span>
+        </div>
+        <a class="open" data-open href="${esc(t.url)}" target="_blank" rel="noopener">
+          Abrir treinamento
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </article>`).join('');
+
+  document.querySelectorAll('[data-open]').forEach((a,i)=>{
+    a.addEventListener('click', ()=>{
+      const t = TRAININGS[i], s = state[t.id];
+      if(s && s.v){ seen[t.id] = s.v; store.set('seen', seen); }
+      // garante o link mais novo mesmo que a verificação ainda esteja em andamento
+      a.href = withVersion(t.url, s && s.v ? s.v : Date.now().toString(36));
+      setTimeout(()=>paint(t), 50);
+    });
+  });
+}
+
+function paint(t){
+  const card = document.getElementById('c-'+t.id); if(!card) return;
+  const s = state[t.id] || {};
+  const dot = card.querySelector('[data-dot]'), upd = card.querySelector('[data-upd]'),
+        ch = card.querySelector('[data-change]'), bd = card.querySelector('[data-badges]'),
+        open = card.querySelector('[data-open]');
+  if(s.date){
+    dot.className = 'dot ok';
+    upd.innerHTML = `Atualizado ${ago(s.date)} <span title="${esc(fmtDate(s.date))}">· ${s.date.toLocaleDateString('pt-BR')}</span>`;
+    upd.title = 'Última publicação: ' + fmtDate(s.date);
+    open.href = withVersion(t.url, s.v);
+  }else if(s.error){
+    dot.className = 'dot err';
+    upd.textContent = 'Não foi possível verificar agora';
+    open.href = withVersion(t.url, Date.now().toString(36));
+  }
+  if(s.msg){ ch.hidden = false; ch.innerHTML = `<b>Última mudança:</b> ${esc(s.msg)}`; } else ch.hidden = true;
+
+  const badges = [];
+  const isNew = s.date && (Date.now() - s.date.getTime()) < 7*864e5;
+  if(seen[t.id] && s.v && seen[t.id] !== s.v) badges.push('<span class="badge upd">Atualizado desde seu último acesso</span>');
+  else if(isNew) badges.push('<span class="badge new"><i></i>Novidade</span>');
+  bd.innerHTML = badges.join('');
+}
+
+/* ---------- verificação de versão ----------
+   1) Data da publicação: cabeçalho Last-Modified do GitHub Pages (sem limite de uso).
+   2) Descrição da última mudança: API do GitHub (guardada por 15 min para não estourar o limite). */
+async function pagesVersion(t){
+  const r = await fetch(withVersion(t.url, 'chk'+Date.now()), {method:'HEAD', cache:'no-store', credentials:'omit'});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const lm = r.headers.get('last-modified');
+  if(!lm) throw new Error('sem data');
+  const d = new Date(lm);
+  return { date:d, v: Math.floor(d.getTime()/1000).toString(36) };
+}
+async function lastCommit(t){
+  const key = 'commit.'+t.repo, c = store.get(key, null);
+  if(c && Date.now()-c.at < 15*60e3) return c;
+  try{
+    const r = await fetch(`https://api.github.com/repos/${OWNER}/${t.repo}/commits?per_page=1`, {credentials:'omit', headers:{Accept:'application/vnd.github+json'}});
+    if(!r.ok) return c;
+    const j = (await r.json())[0];
+    const msg = (j.commit.message||'').split('\n')[0].trim();
+    const val = { at:Date.now(), msg, date:j.commit.committer.date };
+    store.set(key, val); return val;
+  }catch(e){ return c; }
+}
+
+let checking = false;
+async function check(manual){
+  if(checking) return; checking = true;
+  const sync = $('#sync'); sync.classList.add('busy'); $('#syncText').textContent = 'Verificando atualizações…';
+  const before = Object.fromEntries(TRAININGS.map(t=>[t.id, state[t.id] && state[t.id].v]));
+  await Promise.all(TRAININGS.map(async t=>{
+    try{
+      const pv = await pagesVersion(t);
+      state[t.id] = Object.assign(state[t.id]||{}, pv, {error:false});
+    }catch(e){
+      state[t.id] = Object.assign(state[t.id]||{}, {error:true});
+    }
+    paint(t);
+    const c = await lastCommit(t);
+    if(c && c.msg){
+      state[t.id].msg = /^publica vers[aã]o/i.test(c.msg) ? '' : c.msg;
+      paint(t);
+    }
+  }));
+  const changed = TRAININGS.filter(t=>before[t.id] && state[t.id].v && before[t.id] !== state[t.id].v);
+  if(changed.length) toast(`Nova versão: ${changed.map(t=>t.title).join(', ')}. O botão já abre a versão nova.`);
+  else if(manual) toast('Tudo em dia: os botões abrem a versão mais recente.');
+  const ok = TRAININGS.filter(t=>state[t.id] && state[t.id].date).length;
+  $('#syncText').textContent = ok ? `Verificado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}` : 'Sem conexão para verificar';
+  sync.classList.remove('busy'); checking = false;
+}
+
+render();
+check(false);
+$('#refresh').addEventListener('click', ()=>check(true));
+setInterval(()=>{ if(!document.hidden) check(false); }, 5*60e3);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) check(false); });
+setInterval(()=>TRAININGS.forEach(paint), 60e3); // atualiza o "há X min"
+</script>
+</body>
+</html>
