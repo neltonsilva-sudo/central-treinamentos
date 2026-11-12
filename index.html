@@ -119,73 +119,44 @@ h1 span{background:linear-gradient(90deg,#3b82f6,#8b5cf6 45%,#ec4899 75%,#f97316
 .sync.busy .spin{display:inline-block}
 @keyframes r{to{transform:rotate(360deg)}}
 
-/* Cards de vidro */
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:22px; padding-bottom:44px}
-.card{display:flex; flex-direction:column; border-radius:28px; padding:10px;
-  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s}
-.card:hover{transform:translateY(-6px); box-shadow:var(--shade-hover), inset 0 1px 0 var(--glass-edge), inset 0 -1px 0 var(--glass-edge2)}
+/* Cards no padrão Apple: fundo pastel em dois tons, texto no topo, produto grande saindo pela borda */
+.grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; padding:4px 0 48px}
+.card{position:relative; display:block; height:480px; border-radius:22px; overflow:hidden; text-decoration:none; color:#1d1d1f;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Plus Jakarta Sans",system-ui,sans-serif;
+  background:linear-gradient(to bottom, var(--top) 0 var(--split), var(--bottom) var(--split) 100%);
+  box-shadow:0 2px 6px rgba(0,0,0,.05), 0 10px 30px rgba(0,0,0,.08);
+  transition:transform .45s cubic-bezier(0,0,.5,1), box-shadow .45s cubic-bezier(0,0,.5,1)}
+.card:hover{transform:scale(1.015); box-shadow:0 4px 10px rgba(0,0,0,.08), 0 24px 50px rgba(0,0,0,.16)}
+.card:focus-visible{outline:3px solid #0071e3; outline-offset:3px}
 .card[hidden]{display:none}
-/* brilho que acompanha o ponteiro */
-.card::after{content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3; opacity:0; transition:opacity .3s;
-  background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%), rgba(255,255,255,.22), transparent 60%)}
-.card:hover::after{opacity:1}
+.txt{position:relative; z-index:2; padding:28px 26px 0}
+.ey{margin:0 0 6px; font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase; color:#1d1d1f; opacity:.82}
+.ey.hot{opacity:1; color:var(--hot)}
+.card h2{margin:0; font-size:clamp(24px,2.1vw,28px); line-height:1.1; font-weight:700; letter-spacing:-.018em}
+.sub{margin:8px 0 0; font-size:16px; line-height:1.35; color:#1d1d1f}
+.upd{margin:8px 0 0; font-size:13px; color:rgba(29,29,31,.62); display:flex; gap:6px; align-items:center; min-height:18px}
+.upd .dot{width:7px; height:7px; border-radius:50%; flex:none; background:rgba(29,29,31,.25)}
+.upd .dot.ok{background:#16a34a}
+.upd .dot.err{background:#d97706}
+.art{position:absolute; left:0; right:0; bottom:0; height:62%; z-index:1; pointer-events:none}
+.art svg{width:100%; height:100%; display:block; transform-origin:50% 100%; transition:transform .7s cubic-bezier(0,0,.5,1)}
+.card:hover .art svg{transform:scale(1.045)}
+.go{position:absolute; right:16px; bottom:16px; z-index:3; width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+  background:rgba(255,255,255,.92); color:#1d1d1f; box-shadow:0 2px 8px rgba(0,0,0,.2);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); transition:transform .3s}
+.card:hover .go{transform:scale(1.08)}
 
-/* Capa: lente de vidro colorida */
-.cover{position:relative; height:168px; border-radius:20px; overflow:hidden; background:var(--g);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -10px 30px rgba(0,0,0,.18), 0 10px 26px -8px var(--accent)}
-.cover::before{content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
-  background:
-    linear-gradient(115deg, rgba(255,255,255,.38) 0%, rgba(255,255,255,.08) 32%, transparent 33%),
-    radial-gradient(120% 70% at 0% 0%, rgba(255,255,255,.28), transparent 60%)}
-.cover::after{content:""; position:absolute; left:-40%; top:0; width:40%; height:100%; z-index:1; pointer-events:none;
-  background:linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent); transform:skewX(-18deg); transition:left .8s ease}
-.card:hover .cover::after{left:120%}
-.cover svg.art{position:absolute; right:-6px; bottom:-8px; width:210px; height:auto; transition:transform .45s cubic-bezier(.2,.8,.2,1);
-  filter:drop-shadow(0 8px 14px rgba(0,0,0,.18))}
-.card:hover .cover svg.art{transform:scale(1.06) rotate(-1.5deg)}
-.cover .num{position:absolute; left:18px; bottom:10px; font-size:56px; font-weight:800; color:rgba(255,255,255,.28); line-height:1}
-.badges{position:absolute; top:12px; left:12px; right:12px; display:flex; gap:6px; flex-wrap:wrap; z-index:2}
-.badge{font-size:11px; font-weight:700; padding:6px 11px; border-radius:999px; color:#fff;
-  background:rgba(255,255,255,.22); -webkit-backdrop-filter:blur(12px) saturate(160%); backdrop-filter:blur(12px) saturate(160%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 4px 12px rgba(0,0,0,.12); display:inline-flex; align-items:center; gap:6px; text-shadow:0 1px 2px rgba(0,0,0,.2)}
-.badge.new i{width:6px; height:6px; border-radius:50%; background:#fff; animation:pulse 1.6s infinite}
-.badge.upd{background:rgba(253,224,71,.92); color:#422006; text-shadow:none}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
-
-.body{padding:16px 10px 6px; display:flex; flex-direction:column; gap:10px; flex:1}
-.kicker{font-size:12px; font-weight:800; color:var(--accent); letter-spacing:.05em; text-transform:uppercase}
-:root[data-theme="dark"] .kicker{color:var(--accent-l)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kicker{color:var(--accent-l)}}
-.card h2{margin:0; font-size:21px; letter-spacing:-.015em; line-height:1.2}
-.desc{margin:0; color:var(--muted); font-size:14px; line-height:1.55}
-.tags{display:flex; flex-wrap:wrap; gap:6px}
-.tag{font-size:11.5px; font-weight:600; color:var(--text); padding:5px 10px; border-radius:999px;
-  background:var(--soft); box-shadow:inset 0 1px 0 var(--glass-line)}
-.meta{margin-top:auto; padding-top:12px; border-top:1px solid var(--glass-line); display:grid; gap:7px; font-size:12.5px; color:var(--muted)}
-.meta .row{display:flex; align-items:center; gap:8px; min-width:0}
-.meta .row span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.dot{width:8px; height:8px; border-radius:50%; flex:none; background:var(--soft)}
-.dot.ok{background:var(--ok); box-shadow:0 0 8px var(--ok)}
-.dot.err{background:#f59e0b}
-.change{color:var(--text); font-size:12.5px; line-height:1.45; background:var(--soft); border-radius:14px; padding:9px 11px;
-  box-shadow:inset 0 1px 0 var(--glass-line);
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
-.change[hidden]{display:none}
-.change b{color:var(--muted); font-weight:600}
-
-/* Botão de vidro tingido */
-.open{position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; font-weight:700; font-size:14.5px;
-  color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.25); padding:13px 16px; border-radius:16px; margin-top:6px;
-  background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0) 55%), var(--accent);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 6px rgba(0,0,0,.18), 0 8px 20px -6px var(--accent);
-  transition:transform .2s, box-shadow .2s, filter .2s}
-.open:hover{filter:brightness(1.07) saturate(1.1); box-shadow:inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 6px rgba(0,0,0,.18), 0 12px 28px -6px var(--accent)}
-.open:active{transform:scale(.97)}
-.open svg{transition:transform .2s}
-.open:hover svg{transform:translateX(3px)}
-
-.sk{display:inline-block; height:10px; width:140px; border-radius:6px; background:linear-gradient(90deg,var(--soft),var(--glass-line),var(--soft)); background-size:200% 100%; animation:sk 1.2s infinite}
+.sk{display:inline-block; height:9px; width:120px; border-radius:6px; background:linear-gradient(90deg,rgba(0,0,0,.08),rgba(0,0,0,.02),rgba(0,0,0,.08)); background-size:200% 100%; animation:sk 1.2s infinite}
 @keyframes sk{to{background-position:-200% 0}}
+
+@media (max-width:1100px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr))} .card{height:500px} }
+/* Celular: carrossel deslizante como na Apple Store */
+@media (max-width:640px){
+  .grid{display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:14px; margin:0 -16px; padding:4px 16px 36px; scrollbar-width:none}
+  .grid::-webkit-scrollbar{display:none}
+  .card{flex:0 0 84%; height:470px; scroll-snap-align:center}
+  .card:hover{transform:none}
+}
 
 footer{padding:0 0 30px}
 footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; padding:16px 20px; border-radius:20px; color:var(--muted); font-size:13px; line-height:1.6}
@@ -204,8 +175,6 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
   .wrap{padding:0 16px}
   header{padding-top:10px}
   .hero{padding:32px 0 16px}
-  .cover{height:150px}
-  .cover svg.art{width:180px}
   .liquid i{filter:blur(50px)}
   .sync{width:100%; justify-content:space-between}
   .chips{flex-wrap:nowrap; overflow-x:auto; max-width:100%; scrollbar-width:none}
@@ -260,112 +229,170 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
    LISTA DE TREINAMENTOS
    Para incluir um novo treinamento, copie um bloco e ajuste.
    "repo" é o nome do repositório no GitHub (usuário OWNER).
+   top/bottom/split: as duas cores do card e onde a de baixo começa.
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 const TRAININGS = [
   {
-    id: 'iluminancia',
-    repo: 'simulador-iluminancia-nho11',
+    id: 'iluminancia', repo: 'simulador-iluminancia-nho11',
     url: 'https://neltonsilva-sudo.github.io/simulador-iluminancia-nho11/',
-    title: 'Iluminância',
-    kicker: 'NHO-11 · Fundacentro',
-    desc: 'Monte a malha de pontos da NHO-11, meça com o luxímetro e calcule a iluminância média da sala comparando com os critérios da norma.',
-    tags: ['Luxímetro', 'Malha de pontos', 'Cálculo de Ē'],
+    title: 'Iluminância', tag: 'NHO-11 · Fundacentro',
+    sub: 'Malha de pontos e cálculo da iluminância média',
     cat: 'Higiene ocupacional',
-    accent: '#d97706', accentLight: '#fbbf24',
-    g: 'linear-gradient(135deg,#f59e0b 0%,#f97316 55%,#ea580c 100%)',
-    art: 'lamp'
+    top: '#fbe8a6', bottom: '#f6bb45', split: '68%', hot: '#b45309', art: 'lux'
   },
   {
-    id: 'loto',
-    repo: 'simulador-loto',
+    id: 'loto', repo: 'simulador-loto',
     url: 'https://neltonsilva-sudo.github.io/simulador-loto/',
-    title: 'LOTO',
-    kicker: 'Controle de energias perigosas',
-    desc: 'Pratique o bloqueio e a etiquetagem passo a passo: identificar as fontes de energia, isolar, bloquear, etiquetar e testar a energia zero.',
-    tags: ['Bloqueio', 'Etiquetagem', 'Energia zero'],
+    title: 'LOTO', tag: 'Energias perigosas',
+    sub: 'Bloqueio, etiquetagem e teste de energia zero',
     cat: 'Máquinas e eletricidade',
-    accent: '#dc2626', accentLight: '#fca5a5',
-    g: 'linear-gradient(135deg,#ef4444 0%,#dc2626 50%,#9f1239 100%)',
-    art: 'lock'
+    top: '#f9cfd0', bottom: '#e5484d', split: '60%', hot: '#b91c1c', art: 'lock'
   },
   {
-    id: 'multigas',
-    repo: 'gemeo-detector-multigas',
+    id: 'multigas', repo: 'gemeo-detector-multigas',
     url: 'https://neltonsilva-sudo.github.io/gemeo-detector-multigas/',
-    title: 'Detector Multigás',
-    kicker: 'Avaliação de atmosfera',
-    desc: 'Opere um detector multigás com bomba: ligue, faça o teste de resposta e avalie a atmosfera lendo O₂, LEL, CO e H₂S antes da entrada.',
-    tags: ['O₂ · LEL · CO · H₂S', 'Teste de resposta', 'Espaço confinado'],
+    title: 'Detector Multigás', tag: 'Avaliação de atmosfera',
+    sub: 'Teste de resposta e leitura de O₂, LEL, CO e H₂S',
     cat: 'Higiene ocupacional',
-    accent: '#059669', accentLight: '#6ee7b7',
-    g: 'linear-gradient(135deg,#10b981 0%,#059669 50%,#0f766e 100%)',
-    art: 'gas'
+    top: '#c6ead8', bottom: '#1f8a62', split: '64%', hot: '#047857', art: 'gas'
   },
   {
-    id: 'inspecao',
-    repo: 'inspecao-sst',
+    id: 'inspecao', repo: 'inspecao-sst',
     url: 'https://neltonsilva-sudo.github.io/inspecao-sst/',
-    title: 'Inspeção SST',
-    kicker: 'NRs · 5S · PDCA',
-    desc: 'Faça inspeções de segurança com a câmera do celular, aponte as não conformidades com base nas NRs e organize o plano de ação.',
-    tags: ['Câmera', 'Não conformidades', 'Plano de ação'],
+    title: 'Inspeção SST', tag: 'NRs · 5S · PDCA',
+    sub: 'Inspeção pela câmera e plano de ação',
     cat: 'Gestão de SST',
-    accent: '#4f46e5', accentLight: '#a5b4fc',
-    g: 'linear-gradient(135deg,#6366f1 0%,#4f46e5 50%,#7c3aed 100%)',
-    art: 'cam'
+    top: '#d8d3f6', bottom: '#6e5ce0', split: '50%', hot: '#5b21b6', art: 'phone'
   }
 ];
 
-/* Ilustrações dos cards (SVG próprio, sem imagens externas) */
+/* Ilustrações dos equipamentos (SVG próprio, sem imagens externas) */
+const MONO = 'font-family="SF Mono,Menlo,Consolas,monospace"';
+const SANS = 'font-family="-apple-system,BlinkMacSystemFont,Plus Jakarta Sans,system-ui,sans-serif"';
+const shadow = (id, op=.28) => `<filter id="${id}" x="-30%" y="-20%" width="160%" height="150%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity="${op}"/></filter>`;
 const ART = {
-  lamp: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
-    <g fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5">
-      ${[0,1,2,3,4].map(i=>`<path d="M${30+i*36} 150 L${50+i*36} 110"/>`).join('')}
-      <path d="M22 150 H205 M36 130 H200 M48 110 H196"/>
+  lux: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="lx-b" x1="0" x2="1"><stop offset="0" stop-color="#4a505b"/><stop offset=".55" stop-color="#262a31"/><stop offset="1" stop-color="#16181d"/></linearGradient>
+      <linearGradient id="lx-l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dde9c6"/><stop offset="1" stop-color="#aebf91"/></linearGradient>
+      <radialGradient id="lx-d" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#eceef1"/><stop offset="1" stop-color="#a7adb7"/></radialGradient>
+      <radialGradient id="lx-g"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      ${shadow('lx-s')}
+    </defs>
+    <circle cx="232" cy="52" r="70" fill="url(#lx-g)"/>
+    <path d="M129 90 C124 30 206 112 232 84" fill="none" stroke="#15171b" stroke-width="5" stroke-linecap="round"/>
+    <g filter="url(#lx-s)">
+      <ellipse cx="232" cy="84" rx="30" ry="9" fill="#1b1e23"/>
+      <rect x="202" y="64" width="60" height="20" fill="#2c3139"/>
+      <ellipse cx="232" cy="64" rx="30" ry="9" fill="#434954"/>
+      <path d="M208 64 A24 21 0 0 1 256 64 Z" fill="url(#lx-d)"/>
     </g>
-    <g fill="#fff">${[[58,140],[94,140],[130,140],[166,140],[70,120],[106,120],[142,120],[178,120]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2"/>`).join('')}</g>
-    <path d="M78 52 L44 118 H206 L172 52Z" fill="rgba(255,255,255,.22)"/>
-    <rect x="70" y="36" width="110" height="18" rx="9" fill="#fff"/>
-    <rect x="80" y="41" width="90" height="8" rx="4" fill="#fde68a"/>
-    <path d="M125 8 V36" stroke="#fff" stroke-width="3"/>
-  </svg>`,
-  lock: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
-    <rect x="30" y="20" width="96" height="140" rx="10" fill="rgba(255,255,255,.18)"/>
-    <rect x="44" y="40" width="68" height="40" rx="6" fill="rgba(255,255,255,.25)"/>
-    <circle cx="78" cy="112" r="16" fill="rgba(255,255,255,.3)"/>
-    <path d="M78 112 L92 104" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
-    <path d="M128 66 v-14 a22 22 0 0 1 44 0 v14" fill="none" stroke="#fff" stroke-width="9"/>
-    <rect x="116" y="64" width="68" height="56" rx="10" fill="#fff"/>
-    <circle cx="150" cy="86" r="7" fill="#dc2626"/><rect x="147" y="88" width="6" height="16" rx="3" fill="#dc2626"/>
-    <path d="M168 120 l10 10" stroke="#fff" stroke-width="2"/>
-    <g transform="translate(166 128) rotate(12)">
-      <rect width="44" height="34" rx="5" fill="#fde047"/><circle cx="8" cy="8" r="3" fill="#a16207"/>
-      <rect x="6" y="16" width="32" height="4" rx="2" fill="#a16207"/><rect x="6" y="24" width="22" height="4" rx="2" fill="#a16207"/>
+    <g transform="rotate(-8 150 220)" filter="url(#lx-s)">
+      <rect x="138" y="82" width="22" height="14" rx="3" fill="#111"/>
+      <rect x="78" y="92" width="142" height="270" rx="30" fill="url(#lx-b)"/>
+      <rect x="84" y="102" width="7" height="230" rx="3.5" fill="#fff" fill-opacity=".13"/>
+      <rect x="93" y="112" width="112" height="82" rx="13" fill="#0e1014"/>
+      <rect x="99" y="118" width="100" height="70" rx="8" fill="url(#lx-l)"/>
+      <text x="106" y="133" font-size="9" font-weight="700" fill="#4a5634" ${SANS}>LUX</text>
+      <text x="106" y="172" font-size="37" font-weight="700" fill="#1f2a14" ${MONO}>203</text>
+      <text x="176" y="182" font-size="11" font-weight="700" fill="#3c4729" ${SANS}>lx</text>
+      <circle cx="118" cy="226" r="11" fill="#fbbf24"/><circle cx="149" cy="226" r="11" fill="#4b5260"/><circle cx="180" cy="226" r="11" fill="#4b5260"/>
+      <circle cx="115" cy="222" r="4" fill="#fff" fill-opacity=".45"/>
+      <text x="149" y="262" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="2.5" fill="#8b929e" ${SANS}>LUXÍMETRO</text>
     </g>
   </svg>`,
-  gas: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
-    <path d="M20 140 C50 120 60 150 90 130 S140 140 160 120" stroke="rgba(255,255,255,.3)" stroke-width="10" fill="none" stroke-linecap="round"/>
-    <path d="M10 112 C40 96 52 120 80 104" stroke="rgba(255,255,255,.2)" stroke-width="8" fill="none" stroke-linecap="round"/>
-    <rect x="104" y="14" width="88" height="148" rx="18" fill="#fff"/>
-    <rect x="104" y="14" width="88" height="22" rx="11" fill="#facc15"/>
-    <rect x="116" y="46" width="64" height="54" rx="6" fill="#0f172a"/>
-    <g font-family="monospace" font-size="10" font-weight="700" fill="#4ade80">
-      <text x="121" y="60">O₂ 20.9</text><text x="121" y="73">LEL 0</text><text x="121" y="86">CO 0</text><text x="121" y="97" fill="#86efac">H₂S 0</text>
+
+  lock: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="pl-m" x1="0" x2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset=".35" stop-color="#9aa1ad"/><stop offset=".6" stop-color="#eef0f3"/><stop offset="1" stop-color="#7b818c"/></linearGradient>
+      <linearGradient id="pl-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6166"/><stop offset="1" stop-color="#c3101f"/></linearGradient>
+      <linearGradient id="pl-sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient>
+      ${shadow('pl-s', .3)}
+    </defs>
+    <g filter="url(#pl-s)">
+      <path d="M118 158 V100 A52 52 0 0 1 222 100 V158" fill="none" stroke="url(#pl-m)" stroke-width="24"/>
+      <rect x="84" y="146" width="172" height="196" rx="34" fill="url(#pl-r)"/>
+      <rect x="84" y="146" width="172" height="196" rx="34" fill="url(#pl-sh)"/>
+      <rect x="96" y="154" width="148" height="10" rx="5" fill="#fff" fill-opacity=".3"/>
+      <circle cx="170" cy="222" r="14" fill="#4a0b10"/><path d="M162 228 H178 L174 262 H166Z" fill="#4a0b10"/>
     </g>
-    <circle cx="132" cy="122" r="9" fill="#059669"/><circle cx="164" cy="122" r="9" fill="#e2e8f0"/>
-    <rect x="124" y="140" width="48" height="8" rx="4" fill="#e2e8f0"/>
+    <path d="M122 150 C100 160 82 164 70 182" fill="none" stroke="#2d3340" stroke-width="2.5"/>
+    <g transform="rotate(10 64 236)" filter="url(#pl-s)">
+      <rect x="20" y="176" width="92" height="132" rx="12" fill="#facc15"/>
+      <circle cx="66" cy="192" r="6.5" fill="#fff"/><circle cx="66" cy="192" r="6.5" fill="none" stroke="#a16207" stroke-width="2"/>
+      <rect x="20" y="206" width="92" height="30" fill="#dc2626"/>
+      <text x="66" y="227" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" ${SANS}>PERIGO</text>
+      <text x="66" y="258" text-anchor="middle" font-size="14" font-weight="800" fill="#1d1d1f" ${SANS}>NÃO</text>
+      <text x="66" y="276" text-anchor="middle" font-size="14" font-weight="800" fill="#1d1d1f" ${SANS}>OPERE</text>
+    </g>
   </svg>`,
-  cam: `<svg class="art" viewBox="0 0 220 170" aria-hidden="true">
-    <rect x="96" y="6" width="96" height="162" rx="18" fill="#fff"/>
-    <rect x="104" y="22" width="80" height="120" rx="8" fill="#1e1b4b"/>
-    <path d="M110 30 h14 M110 30 v14 M178 30 h-14 M178 30 v14 M110 134 h14 M110 134 v-14 M178 134 h-14 M178 134 v-14" stroke="#a5b4fc" stroke-width="3" fill="none"/>
-    <path d="M144 58 L170 104 H118Z" fill="#facc15"/><rect x="142" y="72" width="4" height="16" rx="2" fill="#1e1b4b"/><circle cx="144" cy="95" r="2.6" fill="#1e1b4b"/>
-    <circle cx="144" cy="154" r="5" fill="#e2e8f0"/>
-    <g transform="translate(26 66)">
-      <rect width="62" height="78" rx="8" fill="rgba(255,255,255,.22)"/>
-      ${[0,1,2].map(i=>`<rect x="10" y="${14+i*20}" width="10" height="10" rx="3" fill="#fff"/><rect x="26" y="${16+i*20}" width="26" height="6" rx="3" fill="rgba(255,255,255,.7)"/>`).join('')}
-      <path d="M12 19 l3 3 5-6 M12 39 l3 3 5-6" stroke="#4f46e5" stroke-width="2" fill="none"/>
+
+  gas: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="mg-b" x1="0" x2="1"><stop offset="0" stop-color="#50565f"/><stop offset=".5" stop-color="#2a2e35"/><stop offset="1" stop-color="#3b4049"/></linearGradient>
+      <linearGradient id="mg-y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe270"/><stop offset="1" stop-color="#f2b200"/></linearGradient>
+      ${shadow('mg-s', .32)}
+    </defs>
+    <g filter="url(#mg-s)">
+      <rect x="194" y="16" width="14" height="30" rx="4" fill="#a3a9b3"/>
+      <rect x="76" y="34" width="148" height="104" rx="40" fill="url(#mg-y)"/>
+      <g fill="#b98700"><rect x="122" y="48" width="56" height="5" rx="2.5"/><rect x="128" y="58" width="44" height="5" rx="2.5"/></g>
+      <rect x="84" y="80" width="132" height="270" rx="28" fill="url(#mg-b)"/>
+      <rect x="90" y="92" width="6" height="210" rx="3" fill="#fff" fill-opacity=".1"/>
+      <rect x="100" y="100" width="100" height="122" rx="14" fill="#05080c"/>
+      <rect x="100" y="100" width="100" height="30" rx="14" fill="#fff" fill-opacity=".05"/>
+      <g ${MONO}>
+        <text x="110" y="126" font-size="10" fill="#6ee7b7">O₂</text><text x="191" y="128" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">20.9</text>
+        <text x="110" y="152" font-size="10" fill="#6ee7b7">LEL</text><text x="191" y="154" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">0</text>
+        <text x="110" y="178" font-size="10" fill="#6ee7b7">CO</text><text x="191" y="180" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">0</text>
+        <text x="110" y="204" font-size="10" fill="#6ee7b7">H₂S</text><text x="191" y="206" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">0</text>
+      </g>
+      <circle cx="126" cy="250" r="13" fill="#10b981"/><circle cx="174" cy="250" r="13" fill="#5b616c"/>
+      <circle cx="122" cy="246" r="4.5" fill="#fff" fill-opacity=".4"/>
+      <text x="150" y="288" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="2.5" fill="#8b929e" ${SANS}>MULTIGÁS</text>
+    </g>
+  </svg>`,
+
+  phone: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+    <defs>
+      <linearGradient id="ph-f" x1="0" x2="1"><stop offset="0" stop-color="#f4f4f6"/><stop offset=".5" stop-color="#c9ccd3"/><stop offset="1" stop-color="#eceef1"/></linearGradient>
+      <linearGradient id="ph-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34405a"/><stop offset="1" stop-color="#1a2133"/></linearGradient>
+      <pattern id="ph-z" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" fill="#facc15"/><rect x="7" width="7" height="14" fill="#111"/></pattern>
+      <clipPath id="ph-c"><rect x="130" y="34" width="172" height="330" rx="32"/></clipPath>
+      ${shadow('ph-s', .3)}
+    </defs>
+    <g filter="url(#ph-s)">
+      <rect x="122" y="26" width="188" height="346" rx="40" fill="url(#ph-f)"/>
+      <rect x="128" y="32" width="176" height="334" rx="34" fill="#0b0d12"/>
+    </g>
+    <g clip-path="url(#ph-c)">
+      <rect x="130" y="34" width="172" height="330" fill="url(#ph-w)"/>
+      <rect x="130" y="206" width="172" height="160" fill="#465166"/>
+      <rect x="130" y="200" width="172" height="10" fill="url(#ph-z)"/>
+      <rect x="176" y="124" width="92" height="80" rx="6" fill="#7b8799"/>
+      <rect x="176" y="124" width="92" height="16" rx="6" fill="#9aa5b6"/>
+      <circle cx="244" cy="168" r="18" fill="#5b6576"/><circle cx="244" cy="168" r="8" fill="#3b4352"/>
+      <rect x="190" y="152" width="30" height="40" rx="3" fill="#56606f"/>
+      <rect x="166" y="112" width="112" height="104" rx="10" fill="none" stroke="#fbbf24" stroke-width="3"/>
+      <rect x="166" y="90" width="96" height="20" rx="10" fill="#fbbf24"/>
+      <text x="214" y="104" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1d1d1f" ${SANS}>⚠ NR-12</text>
+      <g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-opacity=".9">
+        <path d="M146 74 V60 H160"/><path d="M286 74 V60 H272"/><path d="M146 244 V258 H160"/><path d="M286 244 V258 H272"/>
+      </g>
+      <rect x="190" y="42" width="52" height="15" rx="7.5" fill="#000"/>
+      <circle cx="216" cy="296" r="23" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
+      <circle cx="216" cy="296" r="18" fill="#fff"/>
+    </g>
+    <g filter="url(#ph-s)">
+      <rect x="20" y="132" width="134" height="124" rx="18" fill="#fff"/>
+      <text x="36" y="158" font-size="13" font-weight="700" fill="#1d1d1f" ${SANS}>Checklist</text>
+      <circle cx="44" cy="182" r="8" fill="#22c55e"/><path d="M40 182 l3 3 5-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <rect x="58" y="179" width="78" height="6" rx="3" fill="#e5e7eb"/>
+      <circle cx="44" cy="206" r="8" fill="#22c55e"/><path d="M40 206 l3 3 5-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <rect x="58" y="203" width="62" height="6" rx="3" fill="#e5e7eb"/>
+      <circle cx="44" cy="230" r="8" fill="#f59e0b"/><path d="M44 226 v4.5 M44 233.5 v.3" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      <rect x="58" y="227" width="70" height="6" rx="3" fill="#e5e7eb"/>
     </g>
   </svg>`
 };
@@ -388,11 +415,7 @@ function ago(d){
   const mo = Math.round(dd/30); return mo <= 1 ? 'há 1 mês' : `há ${mo} meses`;
 }
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function withVersion(url, v){
-  const u = new URL(url);
-  u.searchParams.set('v', v);
-  return u.toString();
-}
+function withVersion(url, v){ const u = new URL(url); u.searchParams.set('v', v); return u.toString(); }
 let toastT;
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),4200); }
 
@@ -423,34 +446,23 @@ const seen = store.get('seen', {});      // versão que o usuário já abriu
 const state = {};                         // versão atual de cada treinamento
 
 function render(){
-  $('#grid').innerHTML = TRAININGS.map((t,i)=>`
-    <article class="card glass" id="c-${t.id}" data-cat="${esc(t.cat)}" style="--g:${t.g};--accent:${t.accent};--accent-l:${t.accentLight}">
-      <div class="cover">
-        <div class="badges" data-badges></div>
-        <span class="num" aria-hidden="true">0${i+1}</span>
-        ${ART[t.art]||''}
-      </div>
-      <div class="body">
-        <div class="kicker">${esc(t.kicker)}</div>
+  $('#grid').innerHTML = TRAININGS.map(t=>`
+    <a class="card" id="c-${t.id}" data-id="${t.id}" data-cat="${esc(t.cat)}" href="${esc(t.url)}" target="_blank" rel="noopener"
+       style="--top:${t.top};--bottom:${t.bottom};--split:${t.split};--hot:${t.hot}" aria-label="Abrir treinamento ${esc(t.title)}">
+      <div class="txt">
+        <p class="ey" data-ey>${esc(t.tag)}</p>
         <h2>${esc(t.title)}</h2>
-        <p class="desc">${esc(t.desc)}</p>
-        <div class="tags">${t.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>
-        <div class="meta">
-          <div class="row"><i class="dot" data-dot></i><span data-upd><span class="sk"></span></span></div>
-          <span class="change" data-change hidden></span>
-        </div>
-        <a class="open" data-open href="${esc(t.url)}" target="_blank" rel="noopener">
-          Abrir treinamento
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
+        <p class="sub">${esc(t.sub)}</p>
+        <p class="upd"><i class="dot" data-dot></i><span data-upd><span class="sk"></span></span></p>
       </div>
-    </article>`).join('');
+      <div class="art">${ART[t.art]||''}</div>
+      <span class="go" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
+    </a>`).join('');
 
-  document.querySelectorAll('[data-open]').forEach((a,i)=>{
+  document.querySelectorAll('.card').forEach(a=>{
     a.addEventListener('click', ()=>{
-      const t = TRAININGS[i], s = state[t.id];
+      const t = TRAININGS.find(x=>x.id===a.dataset.id), s = state[t.id];
       if(s && s.v){ seen[t.id] = s.v; store.set('seen', seen); }
-      // garante o link mais novo mesmo que a verificação ainda esteja em andamento
       a.href = withVersion(t.url, s && s.v ? s.v : Date.now().toString(36));
       setTimeout(()=>paint(t), 50);
     });
@@ -460,26 +472,21 @@ function render(){
 function paint(t){
   const card = document.getElementById('c-'+t.id); if(!card) return;
   const s = state[t.id] || {};
-  const dot = card.querySelector('[data-dot]'), upd = card.querySelector('[data-upd]'),
-        ch = card.querySelector('[data-change]'), bd = card.querySelector('[data-badges]'),
-        open = card.querySelector('[data-open]');
+  const dot = card.querySelector('[data-dot]'), upd = card.querySelector('[data-upd]'), ey = card.querySelector('[data-ey]');
   if(s.date){
     dot.className = 'dot ok';
-    upd.innerHTML = `Atualizado ${ago(s.date)} <span title="${esc(fmtDate(s.date))}">· ${s.date.toLocaleDateString('pt-BR')}</span>`;
-    upd.title = 'Última publicação: ' + fmtDate(s.date);
-    open.href = withVersion(t.url, s.v);
+    upd.textContent = `Atualizado ${ago(s.date)}`;
+    card.href = withVersion(t.url, s.v);
+    card.title = 'Última publicação: ' + fmtDate(s.date) + (s.msg ? '\nÚltima mudança: ' + s.msg : '');
   }else if(s.error){
     dot.className = 'dot err';
     upd.textContent = 'Não foi possível verificar agora';
-    open.href = withVersion(t.url, Date.now().toString(36));
+    card.href = withVersion(t.url, Date.now().toString(36));
   }
-  if(s.msg){ ch.hidden = false; ch.innerHTML = `<b>Última mudança:</b> ${esc(s.msg)}`; } else ch.hidden = true;
-
-  const badges = [];
   const isNew = s.date && (Date.now() - s.date.getTime()) < 7*864e5;
-  if(seen[t.id] && s.v && seen[t.id] !== s.v) badges.push('<span class="badge upd">Atualizado desde seu último acesso</span>');
-  else if(isNew) badges.push('<span class="badge new"><i></i>Novidade</span>');
-  bd.innerHTML = badges.join('');
+  if(seen[t.id] && s.v && seen[t.id] !== s.v){ ey.textContent = 'Atualizado desde seu último acesso'; ey.classList.add('hot'); }
+  else if(isNew){ ey.textContent = 'Novo · ' + t.tag; ey.classList.remove('hot'); }
+  else { ey.textContent = t.tag; ey.classList.remove('hot'); }
 }
 
 /* ---------- verificação de versão ----------
@@ -520,14 +527,11 @@ async function check(manual){
     }
     paint(t);
     const c = await lastCommit(t);
-    if(c && c.msg){
-      state[t.id].msg = /^publica vers[aã]o/i.test(c.msg) ? '' : c.msg;
-      paint(t);
-    }
+    if(c && c.msg){ state[t.id].msg = /^publica vers[aã]o/i.test(c.msg) ? '' : c.msg; paint(t); }
   }));
   const changed = TRAININGS.filter(t=>before[t.id] && state[t.id].v && before[t.id] !== state[t.id].v);
-  if(changed.length) toast(`Nova versão: ${changed.map(t=>t.title).join(', ')}. O botão já abre a versão nova.`);
-  else if(manual) toast('Tudo em dia: os botões abrem a versão mais recente.');
+  if(changed.length) toast(`Nova versão: ${changed.map(t=>t.title).join(', ')}. O card já abre a versão nova.`);
+  else if(manual) toast('Tudo em dia: os cards abrem a versão mais recente.');
   const ok = TRAININGS.filter(t=>state[t.id] && state[t.id].date).length;
   $('#syncText').textContent = ok ? `Verificado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}` : 'Sem conexão para verificar';
   sync.classList.remove('busy'); checking = false;
@@ -535,12 +539,6 @@ async function check(manual){
 
 render();
 check(false);
-// reflexo de luz que acompanha o ponteiro sobre o vidro
-document.addEventListener('pointermove', e=>{
-  const c = e.target.closest && e.target.closest('.card'); if(!c) return;
-  const r = c.getBoundingClientRect();
-  c.style.setProperty('--mx', (e.clientX-r.left)+'px'); c.style.setProperty('--my', (e.clientY-r.top)+'px');
-}, {passive:true});
 $('#refresh').addEventListener('click', ()=>check(true));
 setInterval(()=>{ if(!document.hidden) check(false); }, 5*60e3);
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) check(false); });
