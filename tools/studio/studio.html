@@ -14,7 +14,7 @@
 <body>
 <script type="module">
 /* Estúdio fotográfico 3D: renderiza cada equipamento com fundo transparente para os cards.
-   uso: studio.html?item=lock|lux|gas|laptop&s=1200   → window.__png (dataURL) quando window.__done */
+   uso: studio.html?item=lock|lux|gas|laptop|panel&s=1200   → window.__png (dataURL) quando window.__done */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -264,8 +264,85 @@ async function buildLaptop() {
   return { root: g, dir: [0.05, 0.42, 1], fov: 22, margin: 0.98 };
 }
 
+/* ---------- painel de comando: disjuntor + contator + relé térmico em trilho DIN ---------- */
+async function buildPanel() {
+  const g = new THREE.Group();
+  const steel = new THREE.MeshPhysicalMaterial({ color: 0xc9cdd2, metalness: 1, roughness: 0.32 });
+  const greyP = new THREE.MeshPhysicalMaterial({ color: 0x8e949b, roughness: 0.55, clearcoat: 0.15 });
+  const darkP = new THREE.MeshPhysicalMaterial({ color: 0x3b4047, roughness: 0.5 });
+  const whiteP = new THREE.MeshPhysicalMaterial({ color: 0xf1f1ee, roughness: 0.45, clearcoat: 0.2 });
+  const screwM = new THREE.MeshPhysicalMaterial({ color: 0xd9dde1, metalness: 1, roughness: 0.25 });
+  const face = (w, h, draw, mat = {}) => new THREE.MeshPhysicalMaterial({ map: canvasTex(w, h, draw), roughness: 0.45, clearcoat: 0.2, ...mat });
+  const screw = (x, y, z, parent) => {
+    const s1 = mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.12, 24), screwM, x, y, z, parent); s1.rotation.x = Math.PI / 2;
+    mesh(new THREE.BoxGeometry(0.36, 0.06, 0.04), darkP, x, y, z + 0.07, parent);
+    mesh(new THREE.BoxGeometry(0.06, 0.36, 0.04), darkP, x, y, z + 0.07, parent);
+  };
+  // trilho DIN 35 mm com furos
+  const railTex = canvasTex(1600, 350, (c, w, h) => { c.fillStyle = '#cfd3d8'; c.fillRect(0, 0, w, h); c.fillStyle = '#2a2e33';
+    for (let x = 60; x < w; x += 250) { rr(c, x, h / 2 - 32, 150, 64, 32); c.fill(); } });
+  mesh(new THREE.BoxGeometry(17, 3.5, 0.15), new THREE.MeshPhysicalMaterial({ map: railTex, metalness: 1, roughness: 0.35 }), 0, 0, -0.5, g);
+  mesh(new THREE.BoxGeometry(17, 0.15, 0.8), steel, 0, 1.68, -0.15, g); mesh(new THREE.BoxGeometry(17, 0.15, 0.8), steel, 0, -1.68, -0.15, g);
+
+  // disjuntor tripolar (3 módulos)
+  const br = new THREE.Group(); br.position.set(-5.2, 0, 0); g.add(br);
+  mesh(new RoundedBoxGeometry(5.3, 9, 4.2, 4, 0.25), whiteP, 0, 0, 1.6, br);
+  mesh(new RoundedBoxGeometry(5.3, 4.6, 1.8, 4, 0.25), whiteP, 0, 0, 3.9, br);
+  const brF = face(530, 460, (c, w, h) => { c.fillStyle = '#f1f1ee'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#1d1d1f'; c.font = `800 52px ${FONT}`; c.textAlign = 'left'; c.fillText('C16', 28, 70);
+    c.font = `600 26px ${FONT}`; c.fillStyle = '#555'; c.fillText('400V~  6000', 28, 108);
+    c.fillStyle = '#d7141e'; c.font = `800 30px ${FONT}`; c.textAlign = 'right'; c.fillText('I-ON', w - 26, 66); c.fillStyle = '#1a9c4a'; c.fillText('O-OFF', w - 26, h - 26);
+    c.strokeStyle = '#bbb'; c.lineWidth = 3; [w / 3, 2 * w / 3].forEach((x) => { c.beginPath(); c.moveTo(x, 130); c.lineTo(x, h - 70); c.stroke(); }); });
+  mesh(new THREE.PlaneGeometry(5.3, 4.6), brF, 0, 0, 4.805, br);
+  const lever = mesh(new RoundedBoxGeometry(4.6, 0.9, 1.6, 4, 0.2), new THREE.MeshPhysicalMaterial({ color: 0x24427a, roughness: 0.4, clearcoat: 0.4 }), 0, 0.45, 5.4, br);
+  lever.rotation.x = -0.35;
+  [-1.77, 0, 1.77].forEach((x) => { screw(x, 3.75, 3.73, br); screw(x, -3.75, 3.73, br); });
+
+  // contator
+  const ct = new THREE.Group(); ct.position.set(0.6, 0.6, 0); g.add(ct);
+  mesh(new RoundedBoxGeometry(4.6, 8.4, 5.6, 4, 0.3), greyP, 0, 0, 2.3, ct);
+  mesh(new RoundedBoxGeometry(4.2, 4.2, 1.6, 4, 0.3), greyP, 0, 0, 5.4, ct);
+  const ctF = face(420, 420, (c, w, h) => { c.fillStyle = '#90969d'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#e9ecef'; c.font = `800 44px ${FONT}`; c.textAlign = 'center'; c.fillText('K1', w / 2, 60);
+    rr(c, w / 2 - 70, 100, 140, 120, 14); c.fillStyle = '#20242a'; c.fill(); rr(c, w / 2 - 50, 118, 100, 84, 8); c.fillStyle = '#29b14a'; c.fill();
+    c.fillStyle = '#f1f3f5'; c.font = `700 26px ${FONT}`; c.fillText('AC-3  9 A  4 kW', w / 2, 285); c.fillText('A1     A2', w / 2, 330);
+    c.font = `600 22px ${FONT}`; c.fillStyle = '#d6dade'; c.fillText('220 V  60 Hz', w / 2, 372); });
+  mesh(new THREE.PlaneGeometry(4.2, 4.2), ctF, 0, 0, 6.205, ct);
+  // blocos de bornes com rótulos
+  const lab = (txt) => face(460, 90, (c, w, h) => { c.fillStyle = '#5d636b'; c.fillRect(0, 0, w, h); c.fillStyle = '#f1f3f5'; c.font = `700 40px ${FONT}`; c.textAlign = 'center';
+    txt.forEach((t, i) => c.fillText(t, w * (i + 0.5) / txt.length, 62)); });
+  mesh(new THREE.PlaneGeometry(4.6, 0.9), lab(['1L1', '3L2', '5L3']), 0, 3.45, 5.11, ct);
+  mesh(new THREE.PlaneGeometry(4.6, 0.9), lab(['2T1', '4T2', '6T3']), 0, -3.45, 5.11, ct);
+  [-1.5, 0, 1.5].forEach((x) => { screw(x, 2.75, 5.12, ct); screw(x, -2.75, 5.12, ct); });
+  // relé térmico acoplado embaixo
+  const rt = new THREE.Group(); rt.position.set(0.6, -6.4, 0); g.add(rt);
+  mesh(new RoundedBoxGeometry(4.6, 3.8, 5.2, 4, 0.3), greyP, 0, 0, 2.6, rt);
+  const rtF = face(460, 380, (c, w, h) => { c.fillStyle = '#90969d'; c.fillRect(0, 0, w, h); c.fillStyle = '#f1f3f5'; c.font = `700 30px ${FONT}`; c.textAlign = 'center';
+    c.fillText('95 96   97 98', w / 2, 46); c.font = `600 24px ${FONT}`; c.fillText('1,0 – 1,6 A', w * 0.36, h - 34); });
+  mesh(new THREE.PlaneGeometry(4.6, 3.8), rtF, 0, 0, 5.205, rt);
+  const dial = mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.35, 40), new THREE.MeshPhysicalMaterial({ color: 0x2f6fd6, roughness: 0.35, clearcoat: 0.6 }), -0.7, 0.1, 5.35, rt); dial.rotation.x = Math.PI / 2;
+  mesh(new THREE.BoxGeometry(0.16, 1.1, 0.06), whiteP, -0.7, 0.1, 5.55, rt).rotation.z = -0.6;
+  const rst = mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.4, 32), new THREE.MeshPhysicalMaterial({ color: 0xd7141e, roughness: 0.35, clearcoat: 0.6 }), 1.25, 0.1, 5.4, rt); rst.rotation.x = Math.PI / 2;
+  // fios: disjuntor (bornes de baixo) → por trás → bornes de cima do contator; saída do relé térmico para o motor
+  const wcol = [0x16181b, 0x6b7078, 0x6b3b1f];
+  const wm = wcol.map((c) => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.4, clearcoat: 0.6 }));
+  [-1.77, 0, 1.77].forEach((x, i) => {
+    const ax = -5.2 + x, bx = 0.6 + (i - 1) * 1.5;
+    tubeAlong([new THREE.Vector3(ax, -3.75, 3.9), new THREE.Vector3(ax, -5.2, 4.3), new THREE.Vector3(ax + 0.4, -6.0, 1.2),
+      new THREE.Vector3(-1.9, -4.5 + i * 0.3, 0.8), new THREE.Vector3(-1.9, 3.5, 0.8),
+      new THREE.Vector3(bx, 6.4 + i * 0.25, 2.0), new THREE.Vector3(bx, 5.6, 4.6), new THREE.Vector3(bx, 3.6, 5.2)], 0.2, wm[i], g, 220);
+  });
+  [-1.5, 0, 1.5].forEach((x, i) => {
+    const px = 0.6 + x;
+    tubeAlong([new THREE.Vector3(px, -7.7, 4.6), new THREE.Vector3(px, -9.0, 4.9), new THREE.Vector3(px + (i - 1) * 0.6, -12.5, 4.4)], 0.18, wm[i], g, 60);
+    screw(px, -7.55, 5.21, g);
+  });
+  g.rotation.set(0.04, 0.42, 0);
+  return { root: g, dir: [0.05, 0.25, 1], fov: 22, margin: 1.0 };
+}
+
 /* ---------- monta, enquadra e renderiza ---------- */
-const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop };
+const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop, panel: buildPanel };
 try {
   await document.fonts.ready;
   const { root, dir, fov, margin } = await BUILD[ITEM]();
