@@ -139,8 +139,10 @@ h1 span{background:linear-gradient(90deg,#3b82f6,#8b5cf6 45%,#ec4899 75%,#f97316
 .upd .dot.ok{background:#16a34a}
 .upd .dot.err{background:#d97706}
 .art{position:absolute; left:0; right:0; bottom:0; height:62%; z-index:1; pointer-events:none}
-.art svg{width:100%; height:100%; display:block; transform-origin:50% 100%; transition:transform .7s cubic-bezier(0,0,.5,1)}
-.card:hover .art svg{transform:scale(1.045)}
+.art img{position:absolute; left:var(--bx,50%); bottom:var(--by,0); height:var(--ih,100%); width:var(--iw,auto); max-width:none;
+  transform:translateX(-50%); transform-origin:50% 100%; transition:transform .7s cubic-bezier(0,0,.5,1);
+  filter:drop-shadow(0 18px 22px rgba(0,0,0,.22))}
+.card:hover .art img{transform:translateX(-50%) scale(1.045)}
 .go{position:absolute; right:16px; bottom:16px; z-index:3; width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
   background:rgba(255,255,255,.92); color:#1d1d1f; box-shadow:0 2px 8px rgba(0,0,0,.2);
   -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); transition:transform .3s}
@@ -239,7 +241,7 @@ const TRAININGS = [
     title: 'Iluminância', tag: 'NHO-11 · Fundacentro',
     sub: 'Malha de pontos e cálculo da iluminância média',
     cat: 'Higiene ocupacional',
-    top: '#fbe8a6', bottom: '#f6bb45', split: '68%', hot: '#b45309', art: 'lux'
+    top: '#fbe8a6', bottom: '#f6bb45', split: '68%', hot: '#b45309', img: 'img/lux.webp', fit: '--ih:100%;--by:-3%'
   },
   {
     id: 'loto', repo: 'simulador-loto',
@@ -247,7 +249,7 @@ const TRAININGS = [
     title: 'LOTO', tag: 'Energias perigosas',
     sub: 'Bloqueio, etiquetagem e teste de energia zero',
     cat: 'Máquinas e eletricidade',
-    top: '#f9cfd0', bottom: '#e5484d', split: '60%', hot: '#b91c1c', art: 'lock'
+    top: '#f9cfd0', bottom: '#e5484d', split: '60%', hot: '#b91c1c', img: 'img/lock.webp', fit: '--ih:104%;--by:-4%'
   },
   {
     id: 'multigas', repo: 'gemeo-detector-multigas',
@@ -255,147 +257,17 @@ const TRAININGS = [
     title: 'Detector Multigás', tag: 'Avaliação de atmosfera',
     sub: 'Teste de resposta e leitura de O₂, LEL, CO e H₂S',
     cat: 'Higiene ocupacional',
-    top: '#c6ead8', bottom: '#1f8a62', split: '64%', hot: '#047857', art: 'gas'
+    top: '#c6ead8', bottom: '#1f8a62', split: '64%', hot: '#047857', img: 'img/gas.webp', fit: '--ih:112%;--by:-16%'
   },
   {
     id: 'inspecao', repo: 'inspecao-sst',
     url: 'https://neltonsilva-sudo.github.io/inspecao-sst/',
     title: 'Inspeção SST', tag: 'NRs · 5S · PDCA',
-    sub: 'Inspeção pela câmera e plano de ação',
+    sub: 'Riscos pelas NRs, 5S e plano 5W2H a partir da câmera',
     cat: 'Gestão de SST',
-    top: '#d8d3f6', bottom: '#6e5ce0', split: '50%', hot: '#5b21b6', art: 'phone'
+    top: '#d8d3f6', bottom: '#6e5ce0', split: '50%', hot: '#5b21b6', img: 'img/laptop.webp', fit: '--ih:auto;--iw:112%;--by:-2%;--bx:56%'
   }
 ];
-
-/* Ilustrações dos equipamentos (SVG próprio, sem imagens externas) */
-const MONO = 'font-family="SF Mono,Menlo,Consolas,monospace"';
-const SANS = 'font-family="-apple-system,BlinkMacSystemFont,Plus Jakarta Sans,system-ui,sans-serif"';
-const shadow = (id, op=.28) => `<filter id="${id}" x="-30%" y="-20%" width="160%" height="150%"><feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000" flood-opacity="${op}"/></filter>`;
-const ART = {
-  lux: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-    <defs>
-      <linearGradient id="lx-b" x1="0" x2="1"><stop offset="0" stop-color="#4a505b"/><stop offset=".55" stop-color="#262a31"/><stop offset="1" stop-color="#16181d"/></linearGradient>
-      <linearGradient id="lx-l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dde9c6"/><stop offset="1" stop-color="#aebf91"/></linearGradient>
-      <radialGradient id="lx-d" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#eceef1"/><stop offset="1" stop-color="#a7adb7"/></radialGradient>
-      <radialGradient id="lx-g"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
-      ${shadow('lx-s')}
-    </defs>
-    <circle cx="232" cy="52" r="70" fill="url(#lx-g)"/>
-    <path d="M129 90 C124 30 206 112 232 84" fill="none" stroke="#15171b" stroke-width="5" stroke-linecap="round"/>
-    <g filter="url(#lx-s)">
-      <ellipse cx="232" cy="84" rx="30" ry="9" fill="#1b1e23"/>
-      <rect x="202" y="64" width="60" height="20" fill="#2c3139"/>
-      <ellipse cx="232" cy="64" rx="30" ry="9" fill="#434954"/>
-      <path d="M208 64 A24 21 0 0 1 256 64 Z" fill="url(#lx-d)"/>
-    </g>
-    <g transform="rotate(-8 150 220)" filter="url(#lx-s)">
-      <rect x="138" y="82" width="22" height="14" rx="3" fill="#111"/>
-      <rect x="78" y="92" width="142" height="270" rx="30" fill="url(#lx-b)"/>
-      <rect x="84" y="102" width="7" height="230" rx="3.5" fill="#fff" fill-opacity=".13"/>
-      <rect x="93" y="112" width="112" height="82" rx="13" fill="#0e1014"/>
-      <rect x="99" y="118" width="100" height="70" rx="8" fill="url(#lx-l)"/>
-      <text x="106" y="133" font-size="9" font-weight="700" fill="#4a5634" ${SANS}>LUX</text>
-      <text x="106" y="172" font-size="37" font-weight="700" fill="#1f2a14" ${MONO}>203</text>
-      <text x="176" y="182" font-size="11" font-weight="700" fill="#3c4729" ${SANS}>lx</text>
-      <circle cx="118" cy="226" r="11" fill="#fbbf24"/><circle cx="149" cy="226" r="11" fill="#4b5260"/><circle cx="180" cy="226" r="11" fill="#4b5260"/>
-      <circle cx="115" cy="222" r="4" fill="#fff" fill-opacity=".45"/>
-      <text x="149" y="262" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="2.5" fill="#8b929e" ${SANS}>LUXÍMETRO</text>
-    </g>
-  </svg>`,
-
-  lock: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-    <defs>
-      <linearGradient id="pl-m" x1="0" x2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset=".35" stop-color="#9aa1ad"/><stop offset=".6" stop-color="#eef0f3"/><stop offset="1" stop-color="#7b818c"/></linearGradient>
-      <linearGradient id="pl-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6166"/><stop offset="1" stop-color="#c3101f"/></linearGradient>
-      <linearGradient id="pl-sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient>
-      ${shadow('pl-s', .3)}
-    </defs>
-    <g filter="url(#pl-s)">
-      <path d="M118 158 V100 A52 52 0 0 1 222 100 V158" fill="none" stroke="url(#pl-m)" stroke-width="24"/>
-      <rect x="84" y="146" width="172" height="196" rx="34" fill="url(#pl-r)"/>
-      <rect x="84" y="146" width="172" height="196" rx="34" fill="url(#pl-sh)"/>
-      <rect x="96" y="154" width="148" height="10" rx="5" fill="#fff" fill-opacity=".3"/>
-      <circle cx="170" cy="222" r="14" fill="#4a0b10"/><path d="M162 228 H178 L174 262 H166Z" fill="#4a0b10"/>
-    </g>
-    <path d="M122 150 C100 160 82 164 70 182" fill="none" stroke="#2d3340" stroke-width="2.5"/>
-    <g transform="rotate(10 64 236)" filter="url(#pl-s)">
-      <rect x="20" y="176" width="92" height="132" rx="12" fill="#facc15"/>
-      <circle cx="66" cy="192" r="6.5" fill="#fff"/><circle cx="66" cy="192" r="6.5" fill="none" stroke="#a16207" stroke-width="2"/>
-      <rect x="20" y="206" width="92" height="30" fill="#dc2626"/>
-      <text x="66" y="227" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" ${SANS}>PERIGO</text>
-      <text x="66" y="258" text-anchor="middle" font-size="14" font-weight="800" fill="#1d1d1f" ${SANS}>NÃO</text>
-      <text x="66" y="276" text-anchor="middle" font-size="14" font-weight="800" fill="#1d1d1f" ${SANS}>OPERE</text>
-    </g>
-  </svg>`,
-
-  gas: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-    <defs>
-      <linearGradient id="mg-b" x1="0" x2="1"><stop offset="0" stop-color="#50565f"/><stop offset=".5" stop-color="#2a2e35"/><stop offset="1" stop-color="#3b4049"/></linearGradient>
-      <linearGradient id="mg-y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe270"/><stop offset="1" stop-color="#f2b200"/></linearGradient>
-      ${shadow('mg-s', .32)}
-    </defs>
-    <g filter="url(#mg-s)">
-      <rect x="194" y="16" width="14" height="30" rx="4" fill="#a3a9b3"/>
-      <rect x="76" y="34" width="148" height="104" rx="40" fill="url(#mg-y)"/>
-      <g fill="#b98700"><rect x="122" y="48" width="56" height="5" rx="2.5"/><rect x="128" y="58" width="44" height="5" rx="2.5"/></g>
-      <rect x="84" y="80" width="132" height="270" rx="28" fill="url(#mg-b)"/>
-      <rect x="90" y="92" width="6" height="210" rx="3" fill="#fff" fill-opacity=".1"/>
-      <rect x="100" y="100" width="100" height="122" rx="14" fill="#05080c"/>
-      <rect x="100" y="100" width="100" height="30" rx="14" fill="#fff" fill-opacity=".05"/>
-      <g ${MONO}>
-        <text x="110" y="126" font-size="10" fill="#6ee7b7">O₂</text><text x="191" y="128" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">20.9</text>
-        <text x="110" y="152" font-size="10" fill="#6ee7b7">LEL</text><text x="191" y="154" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">0</text>
-        <text x="110" y="178" font-size="10" fill="#6ee7b7">CO</text><text x="191" y="180" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">0</text>
-        <text x="110" y="204" font-size="10" fill="#6ee7b7">H₂S</text><text x="191" y="206" text-anchor="end" font-size="18" font-weight="700" fill="#4ade80">0</text>
-      </g>
-      <circle cx="126" cy="250" r="13" fill="#10b981"/><circle cx="174" cy="250" r="13" fill="#5b616c"/>
-      <circle cx="122" cy="246" r="4.5" fill="#fff" fill-opacity=".4"/>
-      <text x="150" y="288" text-anchor="middle" font-size="9.5" font-weight="700" letter-spacing="2.5" fill="#8b929e" ${SANS}>MULTIGÁS</text>
-    </g>
-  </svg>`,
-
-  phone: `<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-    <defs>
-      <linearGradient id="ph-f" x1="0" x2="1"><stop offset="0" stop-color="#f4f4f6"/><stop offset=".5" stop-color="#c9ccd3"/><stop offset="1" stop-color="#eceef1"/></linearGradient>
-      <linearGradient id="ph-w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34405a"/><stop offset="1" stop-color="#1a2133"/></linearGradient>
-      <pattern id="ph-z" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="14" fill="#facc15"/><rect x="7" width="7" height="14" fill="#111"/></pattern>
-      <clipPath id="ph-c"><rect x="130" y="34" width="172" height="330" rx="32"/></clipPath>
-      ${shadow('ph-s', .3)}
-    </defs>
-    <g filter="url(#ph-s)">
-      <rect x="122" y="26" width="188" height="346" rx="40" fill="url(#ph-f)"/>
-      <rect x="128" y="32" width="176" height="334" rx="34" fill="#0b0d12"/>
-    </g>
-    <g clip-path="url(#ph-c)">
-      <rect x="130" y="34" width="172" height="330" fill="url(#ph-w)"/>
-      <rect x="130" y="206" width="172" height="160" fill="#465166"/>
-      <rect x="130" y="200" width="172" height="10" fill="url(#ph-z)"/>
-      <rect x="176" y="124" width="92" height="80" rx="6" fill="#7b8799"/>
-      <rect x="176" y="124" width="92" height="16" rx="6" fill="#9aa5b6"/>
-      <circle cx="244" cy="168" r="18" fill="#5b6576"/><circle cx="244" cy="168" r="8" fill="#3b4352"/>
-      <rect x="190" y="152" width="30" height="40" rx="3" fill="#56606f"/>
-      <rect x="166" y="112" width="112" height="104" rx="10" fill="none" stroke="#fbbf24" stroke-width="3"/>
-      <rect x="166" y="90" width="96" height="20" rx="10" fill="#fbbf24"/>
-      <text x="214" y="104" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1d1d1f" ${SANS}>⚠ NR-12</text>
-      <g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-opacity=".9">
-        <path d="M146 74 V60 H160"/><path d="M286 74 V60 H272"/><path d="M146 244 V258 H160"/><path d="M286 244 V258 H272"/>
-      </g>
-      <rect x="190" y="42" width="52" height="15" rx="7.5" fill="#000"/>
-      <circle cx="216" cy="296" r="23" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="3"/>
-      <circle cx="216" cy="296" r="18" fill="#fff"/>
-    </g>
-    <g filter="url(#ph-s)">
-      <rect x="20" y="132" width="134" height="124" rx="18" fill="#fff"/>
-      <text x="36" y="158" font-size="13" font-weight="700" fill="#1d1d1f" ${SANS}>Checklist</text>
-      <circle cx="44" cy="182" r="8" fill="#22c55e"/><path d="M40 182 l3 3 5-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <rect x="58" y="179" width="78" height="6" rx="3" fill="#e5e7eb"/>
-      <circle cx="44" cy="206" r="8" fill="#22c55e"/><path d="M40 206 l3 3 5-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <rect x="58" y="203" width="62" height="6" rx="3" fill="#e5e7eb"/>
-      <circle cx="44" cy="230" r="8" fill="#f59e0b"/><path d="M44 226 v4.5 M44 233.5 v.3" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-      <rect x="58" y="227" width="70" height="6" rx="3" fill="#e5e7eb"/>
-    </g>
-  </svg>`
-};
 
 /* ---------- utilidades ---------- */
 const $ = s => document.querySelector(s);
@@ -455,7 +327,7 @@ function render(){
         <p class="sub">${esc(t.sub)}</p>
         <p class="upd"><i class="dot" data-dot></i><span data-upd><span class="sk"></span></span></p>
       </div>
-      <div class="art">${ART[t.art]||''}</div>
+      <div class="art" style="${t.fit}"><img src="${t.img}" alt="" decoding="async"></div>
       <span class="go" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </a>`).join('');
 

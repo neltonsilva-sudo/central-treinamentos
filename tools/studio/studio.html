@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Estúdio de fotos dos cards</title>
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<script type="module">
+/* Estúdio fotográfico 3D: renderiza cada equipamento com fundo transparente para os cards.
+   uso: studio.html?item=lock|lux|gas|laptop&s=1200   → window.__png (dataURL) quando window.__done */
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const Q = new URLSearchParams(location.search);
+const ITEM = Q.get('item') || 'lock';
+const SIZE = +(Q.get('s') || 1200);
+const FONT = '-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif';
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(SIZE, SIZE); renderer.setClearColor(0x000000, 0);
+renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = +(Q.get('exp') || 1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.VSMShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.85;
+const key = new THREE.DirectionalLight(0xffffff, 2.4); key.position.set(-4, 7, 6); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 10; key.shadow.blurSamples = 24; key.shadow.bias = -0.0004;
+scene.add(key, key.target);
+const rim = new THREE.DirectionalLight(0xffffff, 1.4); rim.position.set(5, 4, -6); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffffff, 0.5); fill.position.set(6, 1, 4); scene.add(fill);
+
+/* ---------- utilidades ---------- */
+function mesh(geo, mat, x = 0, y = 0, z = 0, parent) {
+  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+  if (parent) parent.add(m); return m;
+}
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 16; return t;
+}
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function tubeAlong(points, radius, mat, parent, seg = 200) {
+  const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal');
+  return mesh(new THREE.TubeGeometry(curve, seg, radius, 32, false), mat, 0, 0, 0, parent);
+}
+// dígitos de 7 segmentos (LCD)
+const SEG = { 0: 'abcdef', 1: 'bc', 2: 'abged', 3: 'abgcd', 4: 'fgbc', 5: 'afgcd', 6: 'afgedc', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg' };
+function seg7(ctx, ch, x, y, w, h, t, on, off) {
+  const sk = w * 0.12; // inclinação
+  const P = (px, py) => [x + px + (1 - py / h) * sk, y + py];
+  const segs = {
+    a: [[t, 0], [w - t, 0], [w - t * 1.6, t], [t * 1.6, t]],
+    d: [[t * 1.6, h - t], [w - t * 1.6, h - t], [w - t, h], [t, h]],
+    g: [[t, h / 2], [t * 1.6, h / 2 - t / 2], [w - t * 1.6, h / 2 - t / 2], [w - t, h / 2], [w - t * 1.6, h / 2 + t / 2], [t * 1.6, h / 2 + t / 2]],
+    f: [[0, t], [t, t * 1.6], [t, h / 2 - t * 0.7], [0, h / 2 - t * 0.2]],
+    b: [[w, t], [w, h / 2 - t * 0.2], [w - t, h / 2 - t * 0.7], [w - t, t * 1.6]],
+    e: [[0, h / 2 + t * 0.2], [t, h / 2 + t * 0.7], [t, h - t * 1.6], [0, h - t]],
+    c: [[w, h / 2 + t * 0.2], [w, h - t], [w - t, h - t * 1.6], [w - t, h / 2 + t * 0.7]],
+  };
+  const lit = SEG[ch] || '';
+  for (const k of 'abcdefg') {
+    ctx.fillStyle = lit.includes(k) ? on : off;
+    ctx.beginPath(); segs[k].forEach(([px, py], i) => { const [X, Y] = P(px, py); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.closePath(); ctx.fill();
+  }
+}
+const loadImg = (src) => new Promise((ok, err) => { const i = new Image(); i.onload = () => ok(i); i.onerror = err; i.src = src; });
+
+/* ---------- cadeado de bloqueio com etiqueta (LOTO) ---------- */
+async function buildLock() {
+  const g = new THREE.Group();
+  const red = new THREE.MeshPhysicalMaterial({ color: 0xc8101a, roughness: 0.36, clearcoat: 0.7, clearcoatRoughness: 0.22, sheen: 0.2, sheenColor: 0xff6a6a });
+  const chrome = new THREE.MeshPhysicalMaterial({ color: 0xeef1f4, metalness: 1, roughness: 0.14 });
+  const brass = new THREE.MeshPhysicalMaterial({ color: 0xd2a948, metalness: 1, roughness: 0.28 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.6 });
+
+  mesh(new RoundedBoxGeometry(4.2, 4.8, 2.1, 10, 0.55), red, 0, 0, 0, g);
+  // alça de aço
+  const r = 1.3, b = 1.9, top = 3.9, pts = [];
+  for (let y = b; y < top; y += 0.15) pts.push(new THREE.Vector3(-r, y, 0));
+  for (let k = 0; k <= 36; k++) { const a = Math.PI - k * Math.PI / 36; pts.push(new THREE.Vector3(Math.cos(a) * r, top + Math.sin(a) * r, 0)); }
+  for (let y = top - 0.15; y >= b; y -= 0.15) pts.push(new THREE.Vector3(r, y, 0));
+  tubeAlong(pts, 0.3, chrome, g);
+  // etiqueta impressa no corpo
+  const label = canvasTex(640, 440, (c, w, h) => {
+    rr(c, 0, 0, w, h, 40); c.fillStyle = '#fff'; c.fill();
+    c.save(); c.clip(); c.fillStyle = '#111'; c.fillRect(0, 0, w, 120); c.restore();
+    c.fillStyle = '#fff'; c.font = `800 72px ${FONT}`; c.textAlign = 'center'; c.fillText('PERIGO', w / 2, 86);
+    c.fillStyle = '#c8101a'; c.font = `900 84px ${FONT}`; c.fillText('BLOQUEADO', w / 2, 230);
+    c.fillStyle = '#222'; c.font = `600 40px ${FONT}`; c.fillText('Não remova este cadeado', w / 2, 300);
+    c.strokeStyle = '#9aa'; c.lineWidth = 4; c.beginPath(); c.moveTo(60, 392); c.lineTo(w - 60, 392); c.stroke();
+    c.fillStyle = '#555'; c.font = `600 34px ${FONT}`; c.textAlign = 'left'; c.fillText('Nome:', 60, 380);
+  });
+  const lab = mesh(new THREE.PlaneGeometry(3.3, 2.27), new THREE.MeshPhysicalMaterial({ map: label, roughness: 0.3, clearcoat: 0.5, transparent: true, alphaTest: 0.5 }), 0, 0.75, 1.056, g);
+  lab.castShadow = false;
+  // cilindro da chave
+  const cyl = mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.14, 40), brass, 0, -1.45, 1.03, g); cyl.rotation.x = Math.PI / 2;
+  mesh(new THREE.BoxGeometry(0.12, 0.5, 0.05), dark, 0, -1.45, 1.11, g);
+
+  // etiqueta de perigo pendurada na alça
+  const tagTex = canvasTex(680, 1240, (c, w, h) => {
+    rr(c, 0, 0, w, h, 46); c.fillStyle = '#fbfbf8'; c.fill();
+    c.save(); c.clip();
+    c.fillStyle = '#d3121c'; c.fillRect(0, 0, w, 330);
+    c.restore();
+    c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(w / 2, 92, 46, 0, Math.PI * 2); c.fill(); c.globalCompositeOperation = 'source-over';
+    c.fillStyle = '#fff'; c.textAlign = 'center'; c.font = `900 124px ${FONT}`; c.fillText('PERIGO', w / 2, 270);
+    c.fillStyle = '#111'; c.font = `900 118px ${FONT}`; c.fillText('NÃO', w / 2, 500); c.fillText('OPERE', w / 2, 630);
+    c.fillStyle = '#333'; c.font = `700 44px ${FONT}`; c.fillText('EQUIPAMENTO', w / 2, 730); c.fillText('BLOQUEADO', w / 2, 784);
+    c.textAlign = 'left'; c.font = `600 40px ${FONT}`; c.fillStyle = '#555'; c.strokeStyle = '#999'; c.lineWidth = 3;
+    [['Nome:', 900], ['Setor:', 990], ['Data:', 1080]].forEach(([t, y]) => { c.fillText(t, 60, y); c.beginPath(); c.moveTo(190, y + 6); c.lineTo(w - 60, y + 6); c.stroke(); });
+    c.fillStyle = '#c62828'; c.fillRect(46, 1150, w - 92, 16);
+  });
+  const tagMats = Array(6).fill(new THREE.MeshStandardMaterial({ color: 0xeeeeea, roughness: 0.6 }));
+  const front = new THREE.MeshStandardMaterial({ map: tagTex, roughness: 0.55, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  const tagPivot = new THREE.Group(); tagPivot.position.set(-r, 3.05, 0); g.add(tagPivot);
+  const tag = new THREE.Group(); tagPivot.add(tag);
+  const plate = mesh(new THREE.PlaneGeometry(3.4, 6.2), front, 0, -2.75, 0, tag);
+  void tagMats;
+  const grom = mesh(new THREE.TorusGeometry(0.27, 0.07, 16, 40), brass, 0, 0, 0.01, tag);
+  tagPivot.rotation.set(-0.16, 0.12, 0.78);
+  tagPivot.position.set(-r, 2.95, 1.3);
+  // abraçadeira de nylon prendendo a etiqueta na alça
+  const tie = mesh(new THREE.TorusGeometry(0.72, 0.075, 12, 48), new THREE.MeshPhysicalMaterial({ color: 0x15171a, roughness: 0.4, clearcoat: 0.4 }), -r, 3.0, 0.62, g);
+  tie.rotation.y = Math.PI / 2; tie.scale.set(1, 0.55, 1);
+  tag.position.z = 0.0;
+  plate.position.z = 0.0;
+  void grom;
+  g.rotation.y = -0.22;
+  return { root: g, dir: [0.12, 0.2, 1], fov: 22, margin: 1.0 };
+}
+
+/* ---------- luxímetro digital com fotocélula ---------- */
+async function buildLux() {
+  const g = new THREE.Group();
+  const boot = new THREE.MeshPhysicalMaterial({ color: 0x2b3036, roughness: 0.78, sheen: 0.4, sheenRoughness: 0.6, sheenColor: 0x5a6068 });
+  const black = new THREE.MeshPhysicalMaterial({ color: 0x141619, roughness: 0.32, clearcoat: 0.6 });
+  const chrome = new THREE.MeshPhysicalMaterial({ color: 0xe6e9ec, metalness: 1, roughness: 0.18 });
+  const W = 5.6, H = 12.4, CW = 560, CH = 1240;
+  const face = canvasTex(CW, CH, (c, w, h) => {
+    c.fillStyle = '#1d2024'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#f2b72e'; c.fillRect(0, 0, w, 12);
+    c.fillStyle = '#d7dbe0'; c.textAlign = 'center'; c.font = `700 30px ${FONT}`; c.fillText('LUXÍMETRO DIGITAL', w / 2, 70);
+    // janela do LCD
+    rr(c, 40, 100, w - 80, 400, 22); c.fillStyle = '#0d0f12'; c.fill();
+    const lg = c.createLinearGradient(0, 120, 0, 480); lg.addColorStop(0, '#cfdcbc'); lg.addColorStop(1, '#aebd97');
+    rr(c, 62, 122, w - 124, 356, 12); c.fillStyle = lg; c.fill();
+    const on = '#17200f', off = 'rgba(23,32,15,0.06)';
+    ['2', '0', '3'].forEach((d, i) => seg7(c, d, 92 + i * 118, 190, 92, 190, 18, on, off));
+    c.fillStyle = on; c.font = `800 44px ${FONT}`; c.textAlign = 'left'; c.fillText('lx', 448, 372);
+    c.font = `800 26px ${FONT}`; c.fillText('LUX', 86, 166); c.fillStyle = 'rgba(23,32,15,0.08)'; c.fillText('HOLD', 330, 166);
+    c.fillStyle = on; for (let k = 0; k < 22; k++) { c.fillStyle = k < 14 ? on : 'rgba(23,32,15,0.08)'; c.fillRect(86 + k * 17, 420, 11, 30); }
+    // rótulos das teclas
+    c.fillStyle = '#c4c9cf'; c.font = `700 28px ${FONT}`; c.textAlign = 'center';
+    [['LUX/FC', 160, 700], ['HOLD', 400, 700], ['MAX/MIN', 160, 880], ['RANGE', 400, 880]].forEach(([t, x, y]) => c.fillText(t, x, y));
+    c.strokeStyle = '#c4c9cf'; c.lineWidth = 6; c.beginPath(); c.arc(w / 2, 1060, 26, -Math.PI * 0.32, Math.PI * 1.32); c.stroke();
+    c.beginPath(); c.moveTo(w / 2, 1024); c.lineTo(w / 2, 1060); c.stroke();
+  });
+  mesh(new RoundedBoxGeometry(6.7, 13.7, 2.8, 10, 1.05), boot, 0, 0, 0, g);
+  mesh(new RoundedBoxGeometry(W + 0.1, H + 0.1, 0.3, 6, 0.12), black, 0, 0, 1.32, g);
+  mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshPhysicalMaterial({ map: face, roughness: 0.5, clearcoat: 0.3 }), 0, 0, 1.475, g);
+  const cx = (x) => (x / CW - 0.5) * W, cy = (y) => (0.5 - y / CH) * H;
+  // vidro sobre o LCD
+  mesh(new THREE.PlaneGeometry(cx(CW - 40) - cx(40), cy(100) - cy(500)), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.03, transparent: true, opacity: 0.14, clearcoat: 1 }), 0, (cy(100) + cy(500)) / 2, 1.49, g).castShadow = false;
+  const keyMat = new THREE.MeshPhysicalMaterial({ color: 0x4b525b, roughness: 0.55 });
+  const yel = new THREE.MeshPhysicalMaterial({ color: 0xf2b72e, roughness: 0.45, clearcoat: 0.3 });
+  [[160, 640], [400, 640], [160, 820], [400, 820]].forEach(([x, y], i) => mesh(new RoundedBoxGeometry(1.7, 0.75, 0.4, 4, 0.18), i === 0 ? yel : keyMat, cx(x), cy(y), 1.55, g));
+  const pw = mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.3, 40), new THREE.MeshPhysicalMaterial({ color: 0xd8473a, roughness: 0.45 }), cx(CW / 2), cy(980), 1.6, g); pw.rotation.x = Math.PI / 2;
+  // conector no topo
+  const con = mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.8, 24), chrome, 1.6, 7.1, 0, g);
+  // fotocélula
+  const s = new THREE.Group(); s.position.set(5.6, 9.2, -0.6); s.rotation.set(0.62, 0, -0.18); g.add(s);
+  mesh(new THREE.CylinderGeometry(2.25, 2.4, 1.5, 64), black, 0, 0, 0, s);
+  const ring = mesh(new THREE.TorusGeometry(2.0, 0.14, 20, 80), chrome, 0, 0.78, 0, s); ring.rotation.x = Math.PI / 2;
+  const dome = mesh(new THREE.SphereGeometry(1.86, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: 0xfdfdfd, roughness: 0.42, sheen: 0.5, sheenColor: 0xffffff, transmission: 0.15, thickness: 0.5 }), 0, 0.75, 0, s);
+  dome.scale.y = 0.42;
+  const gland = mesh(new THREE.CylinderGeometry(0.35, 0.42, 0.9, 20), black, 0, -0.4, 2.45, s); gland.rotation.x = Math.PI / 2;
+  // cabo espiralado do conector à fotocélula
+  s.updateMatrixWorld(true); g.updateMatrixWorld(true);
+  const a = new THREE.Vector3(1.6, 7.5, 0), bEnd = gland.localToWorld(new THREE.Vector3(0, -0.5, 0));
+  const pts = [];
+  for (let k = 0; k <= 160; k++) {
+    const t = k / 160; const p = new THREE.Vector3().lerpVectors(a, bEnd, t);
+    p.y += Math.sin(t * Math.PI) * 3.2;            // arco
+    const coil = Math.sin(t * Math.PI) * 0.55;     // espiral só no meio
+    p.x += Math.cos(t * Math.PI * 22) * coil; p.z += Math.sin(t * Math.PI * 22) * coil;
+    pts.push(p);
+  }
+  tubeAlong(pts, 0.17, black, g, 900);
+  void con;
+  g.rotation.set(0, -0.32, -0.1);
+  return { root: g, dir: [0.12, 0.2, 1], fov: 22, margin: 1.02 };
+}
+
+/* ---------- detector multigás (modelo do gêmeo digital) ---------- */
+async function buildGas() {
+  const { createLCD } = await import('./gas/lcd.js');
+  const { buildDevice } = await import('./gas/device.js');
+  const { createFirmware } = await import('./gas/firmware.js');
+  const lcd = createLCD();
+  const device = buildDevice({ lcdTexture: lcd.texture });
+  const fw = createFirmware({ seed: 7 });
+  fw.jump('run');
+  let out, t = 0;
+  for (let i = 0; i < 120; i++) { t += 0.1; out = fw.update(0.1, { H2S: 0, CO: 0, O2: 20.9, LEL: 0 }, { inletBlocked: false, hoseLen: 0 }); }
+  lcd.draw(out.lcd, t); device.setLeds(out.leds); device.setBacklight(out.backlight ? 1 : 0); device.update(0, { time: t });
+  lcd.texture.needsUpdate = true;
+  const g = new THREE.Group(); device.group.scale.setScalar(100); g.add(device.group);
+  device.group.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = !/lcd/i.test(o.name); } });
+  g.rotation.y = 0.32;
+  return { root: g, dir: [-0.3, 0.32, 1], fov: 22, margin: 1.0 };
+}
+
+/* ---------- notebook com o app Inspeção SST e webcam ---------- */
+async function buildLaptop() {
+  const img = await loadImg('insp_app.jpg');
+  const g = new THREE.Group();
+  const alu = new THREE.MeshPhysicalMaterial({ color: 0x9ea3aa, metalness: 1, roughness: 0.36 });
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0x060607, roughness: 0.05, clearcoat: 1, clearcoatRoughness: 0.03 });
+  const black = new THREE.MeshPhysicalMaterial({ color: 0x121315, roughness: 0.45, clearcoat: 0.4 });
+  const LW = 15, LD = 10.2;
+  // base com teclado e touchpad
+  mesh(new RoundedBoxGeometry(LW, 0.5, LD, 8, 0.22), alu, 0, 0.25, 0, g);
+  const kb = canvasTex(1500, 1020, (c, w, h) => {
+    c.fillStyle = '#9ea3aa'; c.fillRect(0, 0, w, h);
+    const kw = 86, kh = 80, gap = 12, x0 = 110, y0 = 90;
+    for (let r = 0; r < 6; r++) for (let k = 0; k < 13; k++) {
+      const hh = r === 0 ? 44 : kh; const y = y0 + (r === 0 ? 0 : 56 + (r - 1) * (kh + gap));
+      rr(c, x0 + k * (kw + gap), y, kw, hh, 10); c.fillStyle = '#1a1c1f'; c.fill();
+    }
+    rr(c, w / 2 - 300, 650, 600, 330, 22); c.fillStyle = '#a7acb3'; c.fill(); c.strokeStyle = '#8e939a'; c.lineWidth = 3; c.stroke();
+  });
+  const top = mesh(new THREE.PlaneGeometry(LW - 0.4, LD - 0.4), new THREE.MeshPhysicalMaterial({ map: kb, metalness: 0.6, roughness: 0.4 }), 0, 0.505, 0, g);
+  top.rotation.x = -Math.PI / 2;
+  // tampa com a tela
+  const lid = new THREE.Group(); lid.position.set(0, 0.5, -LD / 2 + 0.2); lid.rotation.x = -0.24; g.add(lid);
+  const LH = 9.8;
+  mesh(new RoundedBoxGeometry(LW, LH, 0.28, 8, 0.2), alu, 0, LH / 2, 0, lid);
+  mesh(new RoundedBoxGeometry(LW - 0.1, LH - 0.1, 0.04, 8, 0.18), glass, 0, LH / 2, 0.15, lid);
+  const SW = 14.0, SH = SW * 900 / 1440;
+  const scr = canvasTex(1440, 900, (c, w, h) => { c.drawImage(img, 0, 0, w, h); });
+  mesh(new THREE.PlaneGeometry(SW, SH), new THREE.MeshBasicMaterial({ map: scr, toneMapped: false }), 0, LH / 2 - 0.15, 0.175, lid).castShadow = false;
+  // webcam presa no topo da tela
+  const cam = new THREE.Group(); cam.position.set(0, LH + 0.42, 0.05); lid.add(cam);
+  const bar = mesh(new THREE.CapsuleGeometry(0.5, 3.2, 12, 32), black, 0, 0, 0.25, cam); bar.rotation.z = Math.PI / 2;
+  const lens = mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 40), new THREE.MeshPhysicalMaterial({ color: 0x0a0c12, roughness: 0.05, clearcoat: 1, iridescence: 0.6 }), 0, 0, 0.72, cam); lens.rotation.x = Math.PI / 2;
+  const ringL = mesh(new THREE.TorusGeometry(0.36, 0.05, 12, 40), new THREE.MeshPhysicalMaterial({ color: 0xd0d3d8, metalness: 1, roughness: 0.2 }), 0, 0, 0.74, cam);
+  void ringL;
+  mesh(new THREE.SphereGeometry(0.06, 12, 8), new THREE.MeshBasicMaterial({ color: 0x35d06a }), 0.95, 0, 0.7, cam);
+  mesh(new RoundedBoxGeometry(1.4, 0.7, 0.9, 4, 0.12), black, 0, -0.55, -0.05, cam);
+  g.rotation.y = -0.5;
+  return { root: g, dir: [0.05, 0.42, 1], fov: 22, margin: 0.98 };
+}
+
+/* ---------- monta, enquadra e renderiza ---------- */
+const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop };
+try {
+  await document.fonts.ready;
+  const { root, dir, fov, margin } = await BUILD[ITEM]();
+  scene.add(root); root.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(root), sph = box.getBoundingSphere(new THREE.Sphere());
+  const cam = new THREE.PerspectiveCamera(fov, 1, 0.1, 1000);
+  const d = new THREE.Vector3(...dir).normalize();
+  const dist = sph.radius / Math.sin(THREE.MathUtils.degToRad(fov / 2)) * margin;
+  cam.position.copy(sph.center).addScaledVector(d, dist); cam.lookAt(sph.center);
+  // luz-chave acompanha o objeto
+  key.target.position.copy(sph.center); key.position.copy(sph.center).add(new THREE.Vector3(-4, 7, 6).multiplyScalar(sph.radius / 3));
+  const sc = key.shadow.camera; sc.left = sc.bottom = -sph.radius * 1.3; sc.right = sc.top = sph.radius * 1.3; sc.near = 0.1; sc.far = sph.radius * 8; sc.updateProjectionMatrix();
+  renderer.render(scene, cam); renderer.render(scene, cam);
+  // recorta rente ao objeto (pelo canal alfa), com folga de 2 %
+  const src = renderer.domElement, c2 = document.createElement('canvas'); c2.width = SIZE; c2.height = SIZE;
+  const x2 = c2.getContext('2d'); x2.drawImage(src, 0, 0);
+  const px = x2.getImageData(0, 0, SIZE, SIZE).data; let x0 = SIZE, y0 = SIZE, x1 = 0, y1 = 0;
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (px[(y * SIZE + x) * 4 + 3] > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const pad = Math.round(SIZE * 0.02); x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(SIZE - 1, x1 + pad); y1 = Math.min(SIZE - 1, y1 + pad);
+  const out = document.createElement('canvas'); out.width = x1 - x0 + 1; out.height = y1 - y0 + 1;
+  out.getContext('2d').drawImage(c2, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+  window.__png = out.toDataURL('image/png');
+  window.__done = true;
+} catch (e) { window.__err = String(e && e.stack || e); window.__done = true; console.error(e); }
+</script>
+</body>
+</html>
