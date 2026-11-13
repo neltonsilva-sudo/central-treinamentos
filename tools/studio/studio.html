@@ -14,7 +14,7 @@
 <body>
 <script type="module">
 /* Estúdio fotográfico 3D: renderiza cada equipamento com fundo transparente para os cards.
-   uso: studio.html?item=lock|lux|gas|laptop|panel&s=1200   → window.__png (dataURL) quando window.__done */
+   uso: studio.html?item=lock|lux|gas|laptop|panel|dose&s=1200   → window.__png (dataURL) quando window.__done */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -341,8 +341,31 @@ async function buildPanel() {
   return { root: g, dir: [0.05, 0.25, 1], fov: 22, margin: 1.0 };
 }
 
+
+/* ---------- dosímetro de ruído + calibrador (modelo real do dosimetria-twin, symlink ./dosi) ---------- */
+async function buildDose() {
+  const { buildDosimeter } = await import('./dosi/dosimeter.js');
+  const { buildCalibrator } = await import('./dosi/calibrator.js');
+  const { createFirmware } = await import('./dosi/firmware.js');
+  const fake = { THREE, scene: new THREE.Scene(), camera: null, canvas: document.createElement('canvas'), renderer, onFrame() { return () => {}; } };
+  fake.scene.environment = scene.environment;
+  const fw = createFirmware({ getInput: () => ({ L: 87.3, spectrum: [80, 82, 84, 85, 83, 82, 80, 75], calibrator: { coupled: false, on: false, level: 114 }, calDrift: 0 }) });
+  fw.quickStart?.(); for (let i = 0; i < 60; i++) { fw.setClock?.(9 * 3600 + 1800 + i); fw.feed?.(88 + Math.sin(i) * 2, 60, 9 * 3600 + 1800 + i * 60); fw.update(0.1); }
+  const d = buildDosimeter(fake, fw, null); d.setWindscreen?.(true);
+  const c = buildCalibrator(fake, null); c.setLevel?.(114); c.setOn?.(true);
+  for (let i = 0; i < 30; i++) { d.update?.(0.1, i * 0.1); c.update?.(0.1, i * 0.1); }
+  const g = new THREE.Group();
+  d.group.removeFromParent(); c.group.removeFromParent();
+  d.group.position.set(0, 0, 0); d.group.rotation.set(0, 0, 0);
+  c.group.position.set(0.085, -0.03, -0.02); c.group.rotation.set(0, -0.25, 0);
+  g.add(d.group, c.group); g.scale.setScalar(100);
+  g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  g.rotation.y = 0.18;
+  return { root: g, dir: [-0.15, 0.12, 1], fov: 22, margin: 1.0 };
+}
+
 /* ---------- monta, enquadra e renderiza ---------- */
-const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop, panel: buildPanel };
+const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop, panel: buildPanel, dose: buildDose };
 try {
   await document.fonts.ready;
   const { root, dir, fov, margin } = await BUILD[ITEM]();
