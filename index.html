@@ -256,7 +256,7 @@ const BUILD = '2026-11-15 11:55';
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
     const r = await fetch(location.pathname + '?nc=' + Date.now(), {cache:'no-store', credentials:'omit'});
-    const m = (await r.text()).match(/const BUILD = '2026-11-15 11:55']+)'/);
+    const m = (await r.text()).match(/const BUILD = '([^']+)'/);
     if(m && m[1] !== BUILD){
       const key = 'ct.reload.' + m[1];
       if(!sessionStorage.getItem(key)){ sessionStorage.setItem(key, '1'); location.replace(location.pathname + '?v=' + encodeURIComponent(m[1])); }
