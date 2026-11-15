@@ -251,7 +251,7 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-15 12:15';
+const BUILD = '2026-11-15 12:25';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -382,7 +382,7 @@ function render(){
         <p class="sub">${esc(t.sub)}</p>
         <p class="upd"><i class="dot" data-dot></i><span data-upd><span class="sk"></span></span></p>
       </div>
-      <div class="art${t.photo ? ' photo' : ''}" style="${t.fit || ''}"><img src="${t.img}" alt="" decoding="async"></div>
+      <div class="art${t.photo ? ' photo' : ''}" style="${t.fit || ''}"><img src="${t.img}?v=${encodeURIComponent(BUILD)}" alt="" decoding="async"></div>
       <span class="go" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
     </a>`).join('') + (SHOW_SLOT ? `
     <div class="card soon" data-cat="__vaga" aria-label="Espaço reservado para um novo treinamento">
