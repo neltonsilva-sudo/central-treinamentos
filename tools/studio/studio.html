@@ -373,6 +373,31 @@ async function buildDose() {
   return { root: g, dir: [-0.1, 0.12, 1], fov: 22, margin: 1.0 };
 }
 
+/* ---------- luxímetro real do simulador de iluminância (corpo + fotocélula + cabo espiralado) ---------- */
+async function buildLuxReal() {
+  const { makeMaterials, buildBody, buildPhotocell, buildCap, CoilCable, BODY } = await import('./ilum/mark_lux_geo.js');
+  const { drawLuxLCD, LCD_W, LCD_H } = await import('./ilum/mark_lux_lcd.js');
+  const { canvasTex } = await import('./ilum/mark_tex.js');
+  const lc = document.createElement('canvas'); lc.width = LCD_W; lc.height = LCD_H;
+  drawLuxLCD(lc, { l1: '203.7', l2: 'L11.000', icons: { lux: true, ls: true, bat: true, auto: true } });
+  const M = makeMaterials();
+  const g = new THREE.Group();
+  const B = buildBody(M, canvasTex(lc)); B.group.position.set(0, BODY.h / 2, 0); B.group.rotation.y = 0.12; g.add(B.group);
+  // fotocélula em pé à direita: cúpula para a frente, empunhadura para baixo
+  const C = buildPhotocell(M), cg = new THREE.Group(); cg.add(C.group);
+  C.group.rotation.set(0, -Math.PI / 2, -Math.PI / 2);
+  cg.position.set(LX, LY, LZ); cg.rotation.y = LR; g.add(cg);
+  g.updateMatrixWorld(true);
+  const a = g.worldToLocal(C.group.localToWorld(C.cableStart.clone()));
+  const b = g.worldToLocal(B.group.localToWorld(B.cableEnd.clone()));
+  const cab = new CoilCable(M.cable, { rest: CR, turns: 40 }); g.add(cab.mesh);
+  for (let i = 0; i < 600; i++) cab.step(a, b, 1 / 30);
+  g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  g.scale.setScalar(100);
+  return { root: g, dir: [0.05, 0.1, 1], fov: 22, margin: 1.0 };
+}
+const P = new URLSearchParams(location.search), LX = +(P.get('lx') ?? 0.1), LY = +(P.get('ly') ?? 0.115), LZ = +(P.get('lz') ?? 0.0), LR = +(P.get('lr') ?? -0.35), CR = +(P.get('cr') ?? 0.12);
+
 /* ---------- pelotas de minério de ferro + capacete (Hematech · Germano–Ubu) ---------- */
 async function buildPellets() {
   const g = new THREE.Group();
@@ -555,7 +580,7 @@ async function buildTruck() {
 }
 
 /* ---------- monta, enquadra e renderiza ---------- */
-const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop, panel: buildPanel, dose: buildDose, pellets: buildPellets, truck: buildTruck };
+const BUILD = { lock: buildLock, lux: buildLux, gas: buildGas, laptop: buildLaptop, panel: buildPanel, dose: buildDose, pellets: buildPellets, truck: buildTruck, luxreal: buildLuxReal };
 try {
   await document.fonts.ready;
   const { root, dir, fov, margin } = await BUILD[ITEM]();
