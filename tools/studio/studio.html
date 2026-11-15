@@ -358,10 +358,19 @@ async function buildDose() {
   d.group.removeFromParent(); c.group.removeFromParent();
   d.group.position.set(0, 0, 0); d.group.rotation.set(0, 0, 0);
   c.group.position.set(0.085, -0.03, -0.02); c.group.rotation.set(0, -0.25, 0);
-  g.add(d.group, c.group); g.scale.setScalar(100);
+  g.add(d.group, c.group);
+  // decibelímetro (medidor de nível sonoro) do simulador, sem o tripé, em pé atrás à esquerda
+  const { buildSLM } = await import('./dosi/ui_slm.js');
+  const s = buildSLM(THREE); s.group.visible = true; s.setTarget(87.3);
+  for (let i = 0; i < 40; i++) s.update(1, i);
+  const m = s.meter; m.removeFromParent(); m.position.set(0, 0, 0); m.rotation.set(0, 0, 0);
+  g.updateMatrixWorld(true);
+  const bd = new THREE.Box3().setFromObject(d.group);
+  m.position.set(bd.min.x - 0.042, bd.min.y, -0.045); m.rotation.y = 0.32;
+  g.add(m); g.scale.setScalar(100);
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-  g.rotation.y = 0.18;
-  return { root: g, dir: [-0.15, 0.12, 1], fov: 22, margin: 1.0 };
+  g.rotation.y = 0.12;
+  return { root: g, dir: [-0.1, 0.12, 1], fov: 22, margin: 1.0 };
 }
 
 /* ---------- pelotas de minério de ferro + capacete (Hematech · Germano–Ubu) ---------- */

@@ -251,12 +251,12 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-14 18:10';
+const BUILD = '2026-11-15 11:55';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
     const r = await fetch(location.pathname + '?nc=' + Date.now(), {cache:'no-store', credentials:'omit'});
-    const m = (await r.text()).match(/const BUILD = '([^']+)'/);
+    const m = (await r.text()).match(/const BUILD = '2026-11-15 11:55']+)'/);
     if(m && m[1] !== BUILD){
       const key = 'ct.reload.' + m[1];
       if(!sessionStorage.getItem(key)){ sessionStorage.setItem(key, '1'); location.replace(location.pathname + '?v=' + encodeURIComponent(m[1])); }
@@ -312,7 +312,7 @@ const TRAININGS = [
     title: 'Dosimetria de Ruído', tag: 'NHO-01 · NR-15',
     sub: 'Calibração, instalação no ombro e dose na jornada',
     cat: 'Higiene ocupacional',
-    top: '#ffe2c4', bottom: '#f08a24', split: '60%', hot: '#c2410c', img: 'img/dose.webp', fit: '--ih:100%;--by:-6%'
+    top: '#ffe2c4', bottom: '#f08a24', split: '60%', hot: '#c2410c', img: 'img/dose.webp', fit: '--ih:116%;--by:-12%'
   },
   {
     id: 'hematech', repo: 'simulador-germano-ubu',
