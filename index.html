@@ -251,7 +251,7 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-15 12:25';
+const BUILD = '2026-11-19 09:55';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -313,6 +313,14 @@ const TRAININGS = [
     sub: 'Calibração, instalação no ombro e dose na jornada',
     cat: 'Higiene ocupacional',
     top: '#ffe2c4', bottom: '#f08a24', split: '60%', hot: '#c2410c', img: 'img/dose.webp', fit: '--ih:116%;--by:-12%'
+  },
+  {
+    id: 'calor', repo: 'simulador-avaliacao-calor',
+    url: 'https://neltonsilva-sudo.github.io/simulador-avaliacao-calor/',
+    title: 'Avaliação de Calor', tag: 'NHO-06 · NR-15 Anexo 3',
+    sub: 'IBUTG na sala de fornos e na casa de caldeiras',
+    cat: 'Higiene ocupacional',
+    top: '#ffd9cf', bottom: '#e4572e', split: '60%', hot: '#b2361a', img: 'img/calor.webp', fit: '--ih:106%;--by:-3%;--bx:45%'
   },
   {
     id: 'hematech', repo: 'simulador-germano-ubu',
