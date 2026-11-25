@@ -1,0 +1,11 @@
+@echo off
+rem Remove o app Treinamentos (atalhos e icone).
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t = Get-Content -LiteralPath '%~f0' -Raw -Encoding UTF8; iex ($t -split ('::' + '---PS---'))[1]"
+exit /b
+::---PS---
+Add-Type -AssemblyName System.Windows.Forms
+foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
+  Remove-Item -LiteralPath (Join-Path $folder 'Treinamentos.lnk') -Force -ErrorAction SilentlyContinue
+}
+Remove-Item -LiteralPath (Join-Path $env:LOCALAPPDATA 'Treinamentos') -Recurse -Force -ErrorAction SilentlyContinue
+[System.Windows.Forms.MessageBox]::Show('O app Treinamentos foi removido.', 'Treinamentos', 'OK', 'Information') | Out-Null

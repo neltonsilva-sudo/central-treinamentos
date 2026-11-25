@@ -1,0 +1,42 @@
+@echo off
+rem Instalador da Central de Treinamentos para Windows.
+rem Cria o atalho "Treinamentos" (Area de Trabalho e Menu Iniciar) que abre a Central
+rem numa janela propria do Microsoft Edge ou do Google Chrome. Nao precisa de administrador.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t = Get-Content -LiteralPath '%~f0' -Raw -Encoding UTF8; iex ($t -split ('::' + '---PS---'))[1]"
+exit /b
+::---PS---
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Windows.Forms
+$url = 'https://neltonsilva-sudo.github.io/central-treinamentos/?app=win'
+$dir = Join-Path $env:LOCALAPPDATA 'Treinamentos'
+try {
+  $browser = $null
+  foreach ($exe in 'msedge.exe', 'chrome.exe') {
+    foreach ($hive in 'HKLM:', 'HKCU:') {
+      $p = (Get-ItemProperty "$hive\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$exe" -ErrorAction SilentlyContinue).'(default)'
+      if ($p) { $p = $p.Trim('"') }
+      if ($p -and (Test-Path $p)) { $browser = $p; break }
+    }
+    if ($browser) { break }
+  }
+  if (-not $browser) {
+    [System.Windows.Forms.MessageBox]::Show('Não encontrei o Microsoft Edge nem o Google Chrome. Instale um deles e rode o instalador de novo.', 'Treinamentos', 'OK', 'Warning') | Out-Null
+    exit 1
+  }
+  New-Item -ItemType Directory -Force -Path $dir | Out-Null
+  $ico = Join-Path $dir 'Treinamentos.ico'
+  [IO.File]::WriteAllBytes($ico, [Convert]::FromBase64String('@@ICO@@'))
+  $shell = New-Object -ComObject WScript.Shell
+  foreach ($folder in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) {
+    $lnk = $shell.CreateShortcut((Join-Path $folder 'Treinamentos.lnk'))
+    $lnk.TargetPath = $browser
+    $lnk.Arguments = "--app=$url"
+    $lnk.IconLocation = $ico
+    $lnk.Description = 'Central de Treinamentos - Segurança do Trabalho'
+    $lnk.Save()
+  }
+  Start-Process -FilePath $browser -ArgumentList "--app=$url"
+  [System.Windows.Forms.MessageBox]::Show("Pronto! O app Treinamentos foi instalado.`n`nO atalho está na Área de Trabalho e no Menu Iniciar.", 'Treinamentos', 'OK', 'Information') | Out-Null
+} catch {
+  [System.Windows.Forms.MessageBox]::Show("Não foi possível instalar: $($_.Exception.Message)", 'Treinamentos', 'OK', 'Error') | Out-Null
+}

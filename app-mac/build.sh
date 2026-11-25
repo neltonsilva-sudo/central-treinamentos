@@ -29,6 +29,6 @@ rm -f downloads/Treinamentos.dmg
 hdiutil create -quiet -volname "Treinamentos" -srcfolder "$D" -fs HFS+ -format UDZO -ov downloads/Treinamentos.dmg
 # .zip (download principal: abre com dois cliques ou qualquer extrator)
 rm -f downloads/Treinamentos-Mac.zip
-ditto -c -k --sequesterRsrc --keepParent "$APP" downloads/Treinamentos-Mac.zip
+ditto -c -k --norsrc --noextattr --keepParent "$APP" downloads/Treinamentos-Mac.zip   # sem __MACOSX
 echo "$APP"
 ls -la downloads/

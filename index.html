@@ -227,15 +227,31 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
 .vbar span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.8}
 .viewer iframe{flex:1; width:100%; border:0; background:#000}
 body.viewing{overflow:hidden}
-.install-tip{position:fixed; inset:0; z-index:70; display:grid; place-items:end center; padding:16px; background:rgba(5,8,20,.45)}
+.install-tip{position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:16px; background:rgba(5,8,20,.5); overflow:auto}
 .install-tip[hidden]{display:none}
-.install-tip > div{width:min(420px,100%); border-radius:22px; padding:20px 20px 16px; color:var(--text); background:var(--glass-strong)}
-.install-tip h3{margin:0 0 10px; font-size:17px}
-.install-tip ol{margin:0 0 14px; padding-left:20px; line-height:1.7; color:var(--muted); font-size:14px}
+.install-tip > div{width:min(560px,100%); max-height:calc(100dvh - 32px); overflow:auto; border-radius:24px; padding:22px 22px 18px; color:var(--text); background:var(--glass-strong)}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; gap:12px}
+.install-tip h3{margin:0; font-size:19px}
+.sheet-sub{margin:6px 0 16px; color:var(--muted); font-size:14px; line-height:1.5}
+.tip-x{border:0; background:var(--soft); color:var(--text); width:34px; height:34px; border-radius:50%; font-size:20px; line-height:1; cursor:pointer; flex:none}
+.plats{display:grid; gap:10px}
+.plat{display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:12px; padding:12px; border-radius:18px; background:var(--soft); border:2px solid transparent}
+.plat.here{border-color:#8b5cf6}
+.plat .pi{width:44px; height:44px; border-radius:13px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,#60a5fa,#8b5cf6 60%,#ec4899)}
+.plat h4{margin:0; font-size:15px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.plat h4 em{font-style:normal; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#fff; background:#8b5cf6; padding:2px 8px; border-radius:99px}
+.plat p{margin:2px 0 0; color:var(--muted); font-size:12.5px}
+.plat .dl{border:0; border-radius:12px; height:38px; padding:0 16px; font:inherit; font-size:14px; font-weight:700; color:#fff; cursor:pointer; white-space:nowrap;
+  background:linear-gradient(135deg,#60a5fa,#8b5cf6 60%,#ec4899)}
+.plat .dl:focus-visible,.tip-x:focus-visible,#tipOk:focus-visible{outline:3px solid rgba(99,102,241,.6); outline-offset:2px}
+.steps-box{margin-top:16px; padding:14px 16px 4px; border-radius:18px; background:var(--soft)}
+.steps-box[hidden]{display:none}
+.steps-box h4{margin:0 0 8px; font-size:15px}
+.install-tip ol{margin:0 0 12px; padding-left:20px; line-height:1.65; color:var(--muted); font-size:14px}
 .install-tip b{color:var(--text)}
 .install-tip a{color:var(--new); font-weight:700}
-.install-tip button{width:100%; border:0; border-radius:14px; height:44px; font:inherit; font-weight:700; color:#fff; cursor:pointer;
-  background:linear-gradient(135deg,#60a5fa,#8b5cf6 60%,#ec4899)}
+#tipOk{width:100%; margin-top:16px; border:0; border-radius:14px; height:44px; font:inherit; font-weight:700; color:var(--text); cursor:pointer; background:var(--soft)}
+@media (max-width:460px){ .plat{grid-template-columns:40px 1fr} .plat .pi{width:40px; height:40px} .plat .dl{grid-column:1 / -1; width:100%} }
 </style>
 </head>
 <body>
@@ -294,9 +310,11 @@ body.viewing{overflow:hidden}
 
 <div class="install-tip" id="installTip" hidden>
   <div class="glass" role="dialog" aria-modal="true" aria-labelledby="tipTitle">
-    <h3 id="tipTitle">Instalar o app</h3>
-    <ol id="tipSteps"></ol>
-    <button type="button" id="tipOk">Entendi</button>
+    <div class="sheet-head"><h3 id="tipTitle">Baixar o app</h3><button type="button" class="tip-x" id="tipX" aria-label="Fechar">×</button></div>
+    <p class="sheet-sub">Escolha o sistema. O app abre a Central numa janela própria, sempre com os simuladores na versão mais nova. Precisa de internet.</p>
+    <div class="plats" id="plats"></div>
+    <div class="steps-box" id="stepsBox" hidden><h4 id="stepsTitle"></h4><ol id="tipSteps"></ol></div>
+    <button type="button" id="tipOk">Fechar</button>
   </div>
 </div>
 
@@ -309,7 +327,7 @@ body.viewing{overflow:hidden}
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-24 23:25';
+const BUILD = '2026-11-24 23:50';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -435,7 +453,9 @@ $('#chips').addEventListener('click', e=>{
 });
 
 /* ---------- app instalado (PWA) ---------- */
-const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || !!window.__APP_SHELL__;  // __APP_SHELL__ = app do Mac
+(function(){ try{ if(/[?&]app=win\b/.test(location.search)) sessionStorage.setItem('ct.shell','win'); }catch(e){} })();
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || !!window.__APP_SHELL__   // __APP_SHELL__ = app do Mac
+  || (()=>{ try{ return sessionStorage.getItem('ct.shell') === 'win'; }catch(e){ return false; } })();               // atalho do Windows
 const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IS_ANDROID = /Android/.test(navigator.userAgent);
 let installEvt = null;
@@ -461,54 +481,74 @@ addEventListener('popstate', closeViewer);
 (function(){
   const btn = $('#install');
   if(STANDALONE) return;                  // já está no app
-  addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; btn.hidden = false; });
-  addEventListener('appinstalled', ()=>{ btn.hidden = true; installEvt = null; toast('App instalado. Procure "Treinamentos" na tela inicial.'); });
-  btn.hidden = false;                     // aparece em qualquer navegador (celular, Mac e PC)
+  addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; });
+  addEventListener('appinstalled', ()=>{ installEvt = null; toast('App instalado. Procure "Treinamentos" nos seus apps.'); });
+  btn.hidden = false;
+  const ua = navigator.userAgent;
+  const IOS_OTHER = IS_IOS && /CriOS|FxiOS|EdgiOS/.test(ua);
+  const HERE = IS_IOS ? 'ios' : IS_ANDROID ? 'android' : /Macintosh/.test(ua) ? 'mac' : /Windows/.test(ua) ? 'win' : '';
   const save = (href, name)=>{ const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
-  btn.addEventListener('click', async ()=>{
-    const ua = navigator.userAgent;
-    const chromium = /Chrome|Chromium|CriOS|Edg/.test(ua);
-    const firefox = /Firefox|FxiOS/.test(ua);
-    const IS_MAC = !IS_IOS && /Macintosh/.test(ua);
-    let steps, title = 'Instalar o app';
-    if(IS_MAC){
-      // Mac: baixa o app de verdade (.dmg)
-      save('downloads/Treinamentos-Mac.zip?v=' + encodeURIComponent(BUILD), 'Treinamentos-Mac.zip');
-      title = 'Baixando o app para Mac…';
-      steps = '<li>Abra a pasta <b>Downloads</b> e dê dois cliques em <b>Treinamentos-Mac.zip</b>. O Safari pode já ter aberto sozinho.</li>' +
-        '<li>Arraste o app <b>Treinamentos</b> para a pasta <b>Aplicativos</b>.</li>' +
-        '<li>Abra o app. Se aparecer <b>“Apple não pôde verificar…”</b>, clique em <b>Concluído</b>, vá em <b>Ajustes do Sistema → Privacidade e Segurança</b>, role até o fim e clique em <b>Abrir Mesmo Assim</b>. Só na primeira vez.</li>' +
-        '<li>Não baixou? <a href="downloads/Treinamentos-Mac.zip" download>Baixar .zip</a> · <a href="downloads/Treinamentos.dmg" download>Baixar .dmg</a></li>';
-    }else if(IS_IOS){
-      if(/CriOS|FxiOS|EdgiOS/.test(ua)){
-        steps = '<li>Abra este link no <b>Safari</b>. Só o Safari baixa o instalador no iPhone.</li><li>Toque em <b>Instalar app</b> de novo.</li>';
-      }else{
-        location.href = 'downloads/Treinamentos.mobileconfig';   // perfil com o ícone do app
-        title = 'Baixando o instalador…';
-        steps = '<li>Toque em <b>Permitir</b> (ou <b>Baixar</b>) e depois em <b>Fechar</b>. Se ele foi para a pasta Downloads, abra o app <b>Arquivos</b> → <b>Downloads</b> e toque em <b>Treinamentos.mobileconfig</b>.</li>' +
-          '<li>Abra <b>Ajustes</b> e toque em <b>Perfil Baixado</b>, logo abaixo do seu nome.</li>' +
-          '<li>Toque em <b>Instalar</b>, digite o código do iPhone e toque em <b>Instalar</b> de novo. O aviso “Não verificado” é normal.</li>' +
-          '<li>Pronto: o ícone <b>Treinamentos</b> aparece na Tela de Início.</li>';
-      }
-    }else if(installEvt){
-      installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; return;
-    }else if(IS_ANDROID){
-      steps = '<li>Abra este link no <b>Chrome</b>.</li><li>Toque no menu <b>⋮</b>.</li>' +
-        '<li>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>';
-    }else if(chromium){
-      steps = '<li>Clique no ícone de <b>instalar</b> no lado direito da barra de endereço.</li>' +
-        '<li>Ou abra o menu <b>⋮ → Transmitir, salvar e compartilhar → Instalar página como app…</b></li>' +
-        '<li>Clique em <b>Instalar</b>.</li>';
-    }else{
-      steps = '<li>Este navegador não instala apps. Abra este link no <b>Safari</b> (Mac) ou no <b>Chrome</b>.</li>' +
-        '<li>Depois toque ou clique em <b>Instalar app</b> de novo.</li>';
+  const ico = {
+    mac: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M1.5 19.5h21"/></svg>',
+    win: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>',
+    ios: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg>',
+    android: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17v-5a7 7 0 0 1 14 0v5z"/><path d="M8 5.5 6.5 3M16 5.5 17.5 3"/><circle cx="9.5" cy="11" r=".6" fill="currentColor"/><circle cx="14.5" cy="11" r=".6" fill="currentColor"/></svg>'
+  };
+  const PLATS = [
+    { id:'mac', name:'macOS', info:'App para Mac · arquivo .zip (1 MB)', act:'Baixar',
+      file:'downloads/Treinamentos-Mac.zip', fname:'Treinamentos-Mac.zip',
+      steps:'<li>Na pasta <b>Downloads</b>, clique com o botão direito em <b>Treinamentos-Mac.zip</b> → <b>Abrir com → Utilitário de Compressão</b>. Não use extratores da App Store: o macOS bloqueia apps extraídos por eles.</li>' +
+        '<li>Arraste o app <b>Treinamentos</b> para a pasta <b>Aplicativos</b> e abra.</li>' +
+        '<li>Se aparecer <b>“Apple não pôde verificar…”</b>, clique em <b>Concluído</b>, vá em <b>Ajustes do Sistema → Privacidade e Segurança</b>, role até o fim e clique em <b>Abrir Mesmo Assim</b>. Só na primeira vez.</li>' +
+        '<li>Prefere .dmg? <a href="downloads/Treinamentos.dmg" download>Baixar .dmg</a> e abra com o botão direito → <b>Abrir com → DiskImageMounter</b>.</li>' },
+    { id:'win', name:'Windows', info:'Instalador · arquivo .zip (70 KB) · usa o Edge ou o Chrome', act:'Baixar',
+      file:'downloads/Treinamentos-Windows.zip', fname:'Treinamentos-Windows.zip',
+      steps:'<li>Abra <b>Treinamentos-Windows.zip</b> e clique em <b>Extrair tudo</b>.</li>' +
+        '<li>Dê dois cliques em <b>Instalar Treinamentos</b>. Se o Windows avisar, clique em <b>Mais informações → Executar assim mesmo</b>.</li>' +
+        '<li>O atalho <b>Treinamentos</b> aparece na Área de Trabalho e no Menu Iniciar. Para remover, use <b>Desinstalar Treinamentos</b>.</li>' +
+        '<li>Sem baixar nada: no Edge, menu <b>⋯ → Aplicativos → Instalar este site como aplicativo</b>.</li>' },
+    { id:'ios', name:'iPhone e iPad', info:'Perfil de instalação · abra no Safari', act:'Baixar',
+      file:'downloads/Treinamentos.mobileconfig', fname:'Treinamentos.mobileconfig',
+      steps:'<li>Toque em <b>Permitir</b> (ou <b>Baixar</b>) e depois em <b>Fechar</b>. Se o arquivo foi para Downloads, abra o app <b>Arquivos → Downloads</b> e toque em <b>Treinamentos.mobileconfig</b>.</li>' +
+        '<li>Abra <b>Ajustes</b> e toque em <b>Perfil Baixado</b>, logo abaixo do seu nome.</li>' +
+        '<li>Toque em <b>Instalar</b>, digite o código do aparelho e toque em <b>Instalar</b> de novo. O aviso “Não verificado” é normal.</li>' +
+        '<li>Sem perfil: no Safari, toque em <b>Compartilhar → Adicionar à Tela de Início</b>.</li>' },
+    { id:'android', name:'Android', info:'Instala direto pelo Chrome, sem arquivo', act:'Instalar',
+      steps:'<li>Abra este link no <b>Chrome</b> do celular.</li><li>Toque no menu <b>⋮</b> e escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>' }
+  ].sort((x,y)=>(y.id===HERE)-(x.id===HERE));   // o sistema deste aparelho vem primeiro
+
+  $('#plats').innerHTML = PLATS.map(p=>`
+    <div class="plat${p.id===HERE?' here':''}">
+      <span class="pi" aria-hidden="true">${ico[p.id]}</span>
+      <div><h4>${p.name}${p.id===HERE?' <em>Este aparelho</em>':''}</h4><p>${p.info}</p></div>
+      <button type="button" class="dl" data-plat="${p.id}">${p.act}</button>
+    </div>`).join('');
+
+  function showSteps(p, title){
+    $('#stepsTitle').textContent = title; $('#tipSteps').innerHTML = p.steps;
+    $('#stepsBox').hidden = false; $('#stepsBox').scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+  $('#plats').addEventListener('click', async e=>{
+    const b = e.target.closest('.dl'); if(!b) return;
+    const p = PLATS.find(x=>x.id===b.dataset.plat);
+    if(p.id === 'android'){
+      if(installEvt && HERE === 'android'){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(err){} installEvt = null; return; }
+      return showSteps(p, 'Como instalar no Android');
     }
-    $('#tipTitle').textContent = title;
-    $('#tipSteps').innerHTML = steps;
-    $('#installTip').hidden = false; $('#tipOk').focus();
+    if(p.id === 'ios' && IS_IOS){
+      if(IOS_OTHER) return showSteps({steps:'<li>Abra este link no <b>Safari</b>. Só o Safari instala o perfil no iPhone.</li>'}, 'Abra no Safari');
+      location.href = p.file;               // o iPhone abre o pedido de instalação do perfil
+    }else{
+      save(p.file + '?v=' + encodeURIComponent(BUILD), p.fname);
+    }
+    showSteps(p, `Baixando para ${p.name}… e depois:`);
   });
-  $('#tipOk').addEventListener('click', ()=>{ $('#installTip').hidden = true; });
-  $('#installTip').addEventListener('click', e=>{ if(e.target.id === 'installTip') $('#installTip').hidden = true; });
+  const close = ()=>{ $('#installTip').hidden = true; btn.focus(); };
+  btn.addEventListener('click', ()=>{ $('#stepsBox').hidden = true; $('#installTip').hidden = false; $('#tipX').focus(); });
+  $('#tipOk').addEventListener('click', close);
+  $('#tipX').addEventListener('click', close);
+  $('#installTip').addEventListener('click', e=>{ if(e.target.id === 'installTip') close(); });
+  addEventListener('keydown', e=>{ if(e.key === 'Escape' && !$('#installTip').hidden) close(); });
 })();
 
 /* ---------- cards ---------- */
