@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Gera downloads/Treinamentos.dmg (app universal Apple Silicon + Intel, assinatura ad-hoc).
+# Gera downloads/Treinamentos-Mac.zip e Treinamentos.dmg (app universal Apple Silicon + Intel, assinatura ad-hoc).
 set -e
 cd "$(dirname "$0")/.."
 B=$(mktemp -d)
@@ -27,5 +27,8 @@ codesign --force --deep -s - "$APP"
 D="$B/dmg"; mkdir "$D"; cp -R "$APP" "$D/"; ln -s /Applications "$D/Aplicativos"
 rm -f downloads/Treinamentos.dmg
 hdiutil create -quiet -volname "Treinamentos" -srcfolder "$D" -fs HFS+ -format UDZO -ov downloads/Treinamentos.dmg
+# .zip (download principal: abre com dois cliques ou qualquer extrator)
+rm -f downloads/Treinamentos-Mac.zip
+ditto -c -k --sequesterRsrc --keepParent "$APP" downloads/Treinamentos-Mac.zip
 echo "$APP"
-ls -la downloads/Treinamentos.dmg
+ls -la downloads/

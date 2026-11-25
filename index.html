@@ -309,7 +309,7 @@ body.viewing{overflow:hidden}
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-24 23:10';
+const BUILD = '2026-11-24 23:25';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -473,12 +473,12 @@ addEventListener('popstate', closeViewer);
     let steps, title = 'Instalar o app';
     if(IS_MAC){
       // Mac: baixa o app de verdade (.dmg)
-      save('downloads/Treinamentos.dmg?v=' + encodeURIComponent(BUILD), 'Treinamentos.dmg');
+      save('downloads/Treinamentos-Mac.zip?v=' + encodeURIComponent(BUILD), 'Treinamentos-Mac.zip');
       title = 'Baixando o app para Mac…';
-      steps = '<li>Abra o arquivo <b>Treinamentos.dmg</b> na pasta Downloads.</li>' +
-        '<li>Arraste <b>Treinamentos</b> para a pasta <b>Aplicativos</b>.</li>' +
+      steps = '<li>Abra a pasta <b>Downloads</b> e dê dois cliques em <b>Treinamentos-Mac.zip</b>. O Safari pode já ter aberto sozinho.</li>' +
+        '<li>Arraste o app <b>Treinamentos</b> para a pasta <b>Aplicativos</b>.</li>' +
         '<li>Abra o app. Se aparecer <b>“Apple não pôde verificar…”</b>, clique em <b>Concluído</b>, vá em <b>Ajustes do Sistema → Privacidade e Segurança</b>, role até o fim e clique em <b>Abrir Mesmo Assim</b>. Só na primeira vez.</li>' +
-        '<li>Não baixou? <a href="downloads/Treinamentos.dmg" download>Clique aqui</a>.</li>';
+        '<li>Não baixou? <a href="downloads/Treinamentos-Mac.zip" download>Baixar .zip</a> · <a href="downloads/Treinamentos.dmg" download>Baixar .dmg</a></li>';
     }else if(IS_IOS){
       if(/CriOS|FxiOS|EdgiOS/.test(ua)){
         steps = '<li>Abra este link no <b>Safari</b>. Só o Safari baixa o instalador no iPhone.</li><li>Toque em <b>Instalar app</b> de novo.</li>';
