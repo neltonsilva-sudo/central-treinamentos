@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleName</key><string>Treinamentos</string>
+  <key>CFBundleDisplayName</key><string>Treinamentos</string>
+  <key>CFBundleIdentifier</key><string>io.github.neltonsilva-sudo.treinamentos</string>
+  <key>CFBundleExecutable</key><string>Treinamentos</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleDevelopmentRegion</key><string>pt-BR</string>
+  <key>LSMinimumSystemVersion</key><string>12.3</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.education</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSHumanReadableCopyright</key><string>Central de Treinamentos · Segurança do Trabalho</string>
+  <key>NSCameraUsageDescription</key><string>A Inspeção SST usa a câmera para analisar o ambiente de trabalho.</string>
+  <key>NSMicrophoneUsageDescription</key><string>Alguns simuladores usam o microfone.</string>
+</dict></plist>

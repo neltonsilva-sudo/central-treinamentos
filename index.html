@@ -233,6 +233,7 @@ body.viewing{overflow:hidden}
 .install-tip h3{margin:0 0 10px; font-size:17px}
 .install-tip ol{margin:0 0 14px; padding-left:20px; line-height:1.7; color:var(--muted); font-size:14px}
 .install-tip b{color:var(--text)}
+.install-tip a{color:var(--new); font-weight:700}
 .install-tip button{width:100%; border:0; border-radius:14px; height:44px; font:inherit; font-weight:700; color:#fff; cursor:pointer;
   background:linear-gradient(135deg,#60a5fa,#8b5cf6 60%,#ec4899)}
 </style>
@@ -248,9 +249,9 @@ body.viewing{overflow:hidden}
       <span><b>Central de Treinamentos</b><small>Segurança do Trabalho</small></span>
     </a>
     <div class="actions">
-    <button class="icon-btn install-btn" id="install" type="button" aria-label="Instalar o app" title="Instalar o app" hidden>
+    <button class="icon-btn install-btn" id="install" type="button" aria-label="Baixar o app" title="Baixar o app para este aparelho" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>
-      <span>Instalar app</span>
+      <span>Baixar app</span>
     </button>
     <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -308,7 +309,7 @@ body.viewing{overflow:hidden}
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-24 22:45';
+const BUILD = '2026-11-24 23:00';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -434,7 +435,7 @@ $('#chips').addEventListener('click', e=>{
 });
 
 /* ---------- app instalado (PWA) ---------- */
-const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true || !!window.__APP_SHELL__;  // __APP_SHELL__ = app do Mac
 const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IS_ANDROID = /Android/.test(navigator.userAgent);
 let installEvt = null;
@@ -463,24 +464,37 @@ addEventListener('popstate', closeViewer);
   addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; btn.hidden = false; });
   addEventListener('appinstalled', ()=>{ btn.hidden = true; installEvt = null; toast('App instalado. Procure "Treinamentos" na tela inicial.'); });
   btn.hidden = false;                     // aparece em qualquer navegador (celular, Mac e PC)
+  const save = (href, name)=>{ const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); };
   btn.addEventListener('click', async ()=>{
-    if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; return; }
     const ua = navigator.userAgent;
     const chromium = /Chrome|Chromium|CriOS|Edg/.test(ua);
     const firefox = /Firefox|FxiOS/.test(ua);
-    const macSafari = !IS_IOS && /Macintosh/.test(ua) && /Safari/.test(ua) && !chromium && !firefox;
-    let steps;
-    if(IS_IOS){
-      steps = (/CriOS|FxiOS|EdgiOS/.test(ua) ? '<li>Abra este link no <b>Safari</b>.</li>' : '') +
-        '<li>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</li>' +
-        '<li>Escolha <b>Adicionar à Tela de Início</b>.</li><li>Toque em <b>Adicionar</b>. O ícone <b>Treinamentos</b> aparece na tela do celular.</li>';
+    const IS_MAC = !IS_IOS && /Macintosh/.test(ua);
+    let steps, title = 'Instalar o app';
+    if(IS_MAC){
+      // Mac: baixa o app de verdade (.dmg)
+      save('downloads/Treinamentos.dmg?v=' + encodeURIComponent(BUILD), 'Treinamentos.dmg');
+      title = 'Baixando o app para Mac…';
+      steps = '<li>Abra o arquivo <b>Treinamentos.dmg</b> na pasta Downloads.</li>' +
+        '<li>Arraste <b>Treinamentos</b> para a pasta <b>Aplicativos</b>.</li>' +
+        '<li>Abra o app. Se aparecer <b>“Apple não pôde verificar…”</b>, clique em <b>Concluído</b>, vá em <b>Ajustes do Sistema → Privacidade e Segurança</b>, role até o fim e clique em <b>Abrir Mesmo Assim</b>. Só na primeira vez.</li>' +
+        '<li>Não baixou? <a href="downloads/Treinamentos.dmg" download>Clique aqui</a>.</li>';
+    }else if(IS_IOS){
+      if(/CriOS|FxiOS|EdgiOS/.test(ua)){
+        steps = '<li>Abra este link no <b>Safari</b>. Só o Safari baixa o instalador no iPhone.</li><li>Toque em <b>Instalar app</b> de novo.</li>';
+      }else{
+        location.href = 'downloads/Treinamentos.mobileconfig';   // perfil com o ícone do app
+        title = 'Baixando o instalador…';
+        steps = '<li>Toque em <b>Permitir</b> e depois em <b>Fechar</b>.</li>' +
+          '<li>Abra <b>Ajustes</b> e toque em <b>Perfil Baixado</b>, logo abaixo do seu nome.</li>' +
+          '<li>Toque em <b>Instalar</b>, digite o código do iPhone e toque em <b>Instalar</b> de novo. O aviso “Não verificado” é normal.</li>' +
+          '<li>Pronto: o ícone <b>Treinamentos</b> aparece na Tela de Início.</li>';
+      }
+    }else if(installEvt){
+      installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; return;
     }else if(IS_ANDROID){
       steps = '<li>Abra este link no <b>Chrome</b>.</li><li>Toque no menu <b>⋮</b>.</li>' +
         '<li>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>';
-    }else if(macSafari){
-      steps = '<li>Na barra de menus, clique em <b>Arquivo → Adicionar ao Dock…</b></li>' +
-        '<li>Clique em <b>Adicionar</b>. O app <b>Treinamentos</b> aparece no Dock e na pasta Aplicativos.</li>' +
-        '<li>Em outro Mac, instale de novo pelo link. Copiar o app não funciona.</li>';
     }else if(chromium){
       steps = '<li>Clique no ícone de <b>instalar</b> no lado direito da barra de endereço.</li>' +
         '<li>Ou abra o menu <b>⋮ → Transmitir, salvar e compartilhar → Instalar página como app…</b></li>' +
@@ -489,6 +503,7 @@ addEventListener('popstate', closeViewer);
       steps = '<li>Este navegador não instala apps. Abra este link no <b>Safari</b> (Mac) ou no <b>Chrome</b>.</li>' +
         '<li>Depois toque ou clique em <b>Instalar app</b> de novo.</li>';
     }
+    $('#tipTitle').textContent = title;
     $('#tipSteps').innerHTML = steps;
     $('#installTip').hidden = false; $('#tipOk').focus();
   });
