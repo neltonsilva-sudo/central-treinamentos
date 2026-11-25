@@ -309,7 +309,7 @@ body.viewing{overflow:hidden}
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-24 23:00';
+const BUILD = '2026-11-24 23:10';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -485,7 +485,7 @@ addEventListener('popstate', closeViewer);
       }else{
         location.href = 'downloads/Treinamentos.mobileconfig';   // perfil com o ícone do app
         title = 'Baixando o instalador…';
-        steps = '<li>Toque em <b>Permitir</b> e depois em <b>Fechar</b>.</li>' +
+        steps = '<li>Toque em <b>Permitir</b> (ou <b>Baixar</b>) e depois em <b>Fechar</b>. Se ele foi para a pasta Downloads, abra o app <b>Arquivos</b> → <b>Downloads</b> e toque em <b>Treinamentos.mobileconfig</b>.</li>' +
           '<li>Abra <b>Ajustes</b> e toque em <b>Perfil Baixado</b>, logo abaixo do seu nome.</li>' +
           '<li>Toque em <b>Instalar</b>, digite o código do iPhone e toque em <b>Instalar</b> de novo. O aviso “Não verificado” é normal.</li>' +
           '<li>Pronto: o ícone <b>Treinamentos</b> aparece na Tela de Início.</li>';
