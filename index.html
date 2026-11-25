@@ -224,7 +224,10 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
 .vbar button{border:0; background:rgba(255,255,255,.12); color:#fff; font:inherit; height:32px; padding:0 14px 0 10px;
   border-radius:16px; display:flex; align-items:center; gap:4px; cursor:pointer}
 .vbar button:focus-visible{outline:3px solid rgba(99,102,241,.7); outline-offset:2px}
-.vbar span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.8}
+.vbar span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.8}
+.vbar button[hidden]{display:none}
+.vbar .vclose{padding:0 14px 0 12px; gap:6px; background:#e5484d}
+.vbar .vclose:hover{background:#d93d42}
 .vstack{flex:1; position:relative}
 .vstack iframe{position:absolute; inset:0; width:100%; height:100%; border:0; background:#000}
 .vstack iframe.under{visibility:hidden}      /* camada de baixo continua rodando (sincronismo), só não aparece */
@@ -307,6 +310,7 @@ body.viewing{overflow:hidden}
   <div class="vbar">
     <button type="button" id="vback" aria-label="Voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><b id="vbackTxt">Central</b></button>
     <span id="vtitle"></span>
+    <button type="button" id="vclose" class="vclose" aria-label="Fechar o simulador e voltar à escolha dos treinamentos"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg><b>Fechar</b></button>
   </div>
   <div class="vstack" id="vstack"></div>
 </div>
@@ -330,7 +334,7 @@ body.viewing{overflow:hidden}
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-25 00:20';
+const BUILD = '2026-11-25 00:45';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -472,8 +476,8 @@ function sameSite(u){ try{ return new URL(u, location.href).origin === location.
 function vbarSync(){
   const top = layers[layers.length-1], prev = layers[layers.length-2];
   $('#vtitle').textContent = top ? top.title : '';
-  $('#vbackTxt').textContent = prev ? prev.title : 'Central';
-  $('#vback').setAttribute('aria-label', prev ? 'Voltar para ' + prev.title : 'Voltar para a Central');
+  $('#vback').hidden = !prev;
+  if(prev){ $('#vbackTxt').textContent = prev.title; $('#vback').setAttribute('aria-label', 'Voltar para ' + prev.title); }
 }
 function frameTitle(f, fallback){
   try{ const t = (f.contentDocument.title || '').split(/\s[·|–—-]\s/)[0].trim(); if(t) return t.slice(0, 40); }catch(e){}
@@ -503,7 +507,7 @@ function pushLayer(url, title){
   const f = document.createElement('iframe');
   f.title = title; f.allow = FRAME_ALLOW; f.allowFullscreen = true;
   const L = {frame:f, title};
-  f.addEventListener('load', ()=>hookFrame(L));
+  f.addEventListener('load', ()=>{ hookFrame(L); if(layers[layers.length-1] === L) try{ f.contentWindow.focus(); }catch(e){ f.focus(); } });
   f.src = url;
   $('#vstack').appendChild(f);
   layers.push(L); vbarSync();
@@ -522,7 +526,6 @@ function openViewer(t, url){
   $('#viewer').hidden = false;
   document.body.classList.add('viewing');
   pushLayer(url, t.title);
-  $('#vback').focus();
 }
 function closeViewer(){
   if($('#viewer').hidden) return;
@@ -531,6 +534,11 @@ function closeViewer(){
   document.body.classList.remove('viewing');
   check(false);
 }
+$('#vclose').addEventListener('click', ()=>{
+  const d = history.state && history.state.viewer ? history.state.depth : 0;
+  if(d > 0){ history.go(-d); setTimeout(closeViewer, 500); }   // o popstate fecha as camadas; o timeout garante
+  else closeViewer();
+});
 $('#vback').addEventListener('click', ()=>{
   if(history.state && history.state.viewer) history.back();
   else if(layers.length > 1) popLayer(); else closeViewer();
@@ -646,8 +654,8 @@ function render(){
       if(s && s.v){ seen[t.id] = s.v; store.set('seen', seen); }
       a.href = withVersion(t.url, s && s.v ? s.v : Date.now().toString(36));
       setTimeout(()=>paint(t), 50);
-      // no app instalado não existe botão "voltar": o simulador abre dentro da Central
-      if(STANDALONE && !e.metaKey && !e.ctrlKey){ e.preventDefault(); openViewer(t, a.href); }
+      // o simulador abre dentro da Central (barra com "Fechar"); Ctrl/⌘-clique abre em nova aba
+      if(!e.metaKey && !e.ctrlKey && !e.shiftKey && e.button === 0){ e.preventDefault(); openViewer(t, a.href); }
     });
   });
 }
