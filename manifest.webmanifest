@@ -1,0 +1,18 @@
+{
+  "name": "Central de Treinamentos",
+  "short_name": "Treinamentos",
+  "description": "Simuladores 3D de Segurança do Trabalho.",
+  "lang": "pt-BR",
+  "id": "./",
+  "start_url": "./?app=1",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070a16",
+  "theme_color": "#070a16",
+  "icons": [
+    { "src": "img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

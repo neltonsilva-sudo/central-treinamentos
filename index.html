@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Central de Treinamentos</title>
 <meta name="description" content="Simuladores de Segurança do Trabalho: iluminância, LOTO, detector multigás e inspeção SST.">
-<meta name="theme-color" content="#070a16">
+<meta name="theme-color" content="#eef1f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#070a16" media="(prefers-color-scheme: dark)">
+<!-- App instalável (PWA): ícone na tela inicial, abre em tela cheia -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/app/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Treinamentos">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%233b82f6'/%3E%3Cpath d='M32 12l16 6v12c0 11-7 18-16 22-9-4-16-11-16-22V18z' fill='%23fff'/%3E%3Cpath d='M25 32l5 5 10-11' stroke='%233b82f6' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -200,6 +208,30 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
   .chip{flex:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+
+/* ---------- app instalado (PWA) ---------- */
+.actions{display:flex; gap:8px}
+.icon-btn[hidden]{display:none}
+/* no app, o simulador abre aqui dentro, com a barra "‹ Central" para voltar */
+.viewer{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:#000}
+.viewer[hidden]{display:none}
+.vbar{flex:none; display:flex; align-items:center; gap:10px; height:44px; padding:0 10px;
+  padding-left:max(10px, env(safe-area-inset-left)); padding-right:max(10px, env(safe-area-inset-right));
+  background:#0d1326; color:#eef1fb; font-size:14px; font-weight:600}
+.vbar button{border:0; background:rgba(255,255,255,.12); color:#fff; font:inherit; height:32px; padding:0 14px 0 10px;
+  border-radius:16px; display:flex; align-items:center; gap:4px; cursor:pointer}
+.vbar button:focus-visible{outline:3px solid rgba(99,102,241,.7); outline-offset:2px}
+.vbar span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.8}
+.viewer iframe{flex:1; width:100%; border:0; background:#000}
+body.viewing{overflow:hidden}
+.install-tip{position:fixed; inset:0; z-index:70; display:grid; place-items:end center; padding:16px; background:rgba(5,8,20,.45)}
+.install-tip[hidden]{display:none}
+.install-tip > div{width:min(420px,100%); border-radius:22px; padding:20px 20px 16px; color:var(--text); background:var(--glass-strong)}
+.install-tip h3{margin:0 0 10px; font-size:17px}
+.install-tip ol{margin:0 0 14px; padding-left:20px; line-height:1.7; color:var(--muted); font-size:14px}
+.install-tip b{color:var(--text)}
+.install-tip button{width:100%; border:0; border-radius:14px; height:44px; font:inherit; font-weight:700; color:#fff; cursor:pointer;
+  background:linear-gradient(135deg,#60a5fa,#8b5cf6 60%,#ec4899)}
 </style>
 </head>
 <body>
@@ -212,9 +244,14 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
       </span>
       <span><b>Central de Treinamentos</b><small>Segurança do Trabalho</small></span>
     </a>
+    <div class="actions">
+    <button class="icon-btn" id="install" type="button" aria-label="Instalar o app no celular" title="Instalar o app" hidden>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3M10.5 18.5h3"/></svg>
+    </button>
     <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
+    </div>
   </div></div>
 </header>
 
@@ -242,6 +279,22 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
 
 <div class="toast glass" id="toast" role="status"></div>
 
+<div class="viewer" id="viewer" hidden>
+  <div class="vbar">
+    <button type="button" id="vback" aria-label="Voltar para a Central"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Central</button>
+    <span id="vtitle"></span>
+  </div>
+  <iframe id="vframe" title="Simulador" allow="camera; microphone; fullscreen; autoplay; accelerometer; gyroscope; xr-spatial-tracking" allowfullscreen></iframe>
+</div>
+
+<div class="install-tip" id="installTip" hidden>
+  <div class="glass" role="dialog" aria-modal="true" aria-labelledby="tipTitle">
+    <h3 id="tipTitle">Instalar o app no celular</h3>
+    <ol id="tipSteps"></ol>
+    <button type="button" id="tipOk">Entendi</button>
+  </div>
+</div>
+
 <script>
 /* ==========================================================
    LISTA DE TREINAMENTOS
@@ -251,7 +304,7 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-19 09:55';
+const BUILD = '2026-11-24 22:20';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -376,6 +429,51 @@ $('#chips').addEventListener('click', e=>{
   document.querySelectorAll('.card').forEach(c=>{ c.hidden = !(curCat==='Todos' || c.dataset.cat===curCat); });
 });
 
+/* ---------- app instalado (PWA) ---------- */
+const STANDALONE = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /Android/.test(navigator.userAgent);
+let installEvt = null;
+
+function openViewer(t, url){
+  $('#vtitle').textContent = t.title;
+  $('#vframe').src = url;
+  $('#viewer').hidden = false;
+  document.body.classList.add('viewing');
+  history.pushState({viewer:t.id}, '');   // o "voltar" do Android fecha o simulador
+  $('#vback').focus();
+}
+function closeViewer(){
+  if($('#viewer').hidden) return;
+  $('#viewer').hidden = true;
+  document.body.classList.remove('viewing');
+  $('#vframe').src = 'about:blank';      // libera a memória do 3D
+  check(false);
+}
+$('#vback').addEventListener('click', ()=>{ if(history.state && history.state.viewer) history.back(); else closeViewer(); });
+addEventListener('popstate', closeViewer);
+
+(function(){
+  const btn = $('#install');
+  if(STANDALONE) return;                  // já está no app
+  addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; btn.hidden = false; });
+  addEventListener('appinstalled', ()=>{ btn.hidden = true; installEvt = null; toast('App instalado. Procure "Treinamentos" na tela inicial.'); });
+  if(IS_IOS || IS_ANDROID) btn.hidden = false;
+  btn.addEventListener('click', async ()=>{
+    if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; return; }
+    const safari = IS_IOS && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
+    $('#tipSteps').innerHTML = IS_IOS
+      ? (safari ? '' : '<li>Abra este link no <b>Safari</b>.</li>') +
+        '<li>Toque em <b>Compartilhar</b> (o quadrado com a seta para cima).</li>' +
+        '<li>Escolha <b>Adicionar à Tela de Início</b>.</li><li>Toque em <b>Adicionar</b>. O ícone <b>Treinamentos</b> aparece na tela do celular.</li>'
+      : '<li>Abra este link no <b>Chrome</b>.</li><li>Toque no menu <b>⋮</b>.</li>' +
+        '<li>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>';
+    $('#installTip').hidden = false; $('#tipOk').focus();
+  });
+  $('#tipOk').addEventListener('click', ()=>{ $('#installTip').hidden = true; });
+  $('#installTip').addEventListener('click', e=>{ if(e.target.id === 'installTip') $('#installTip').hidden = true; });
+})();
+
 /* ---------- cards ---------- */
 const seen = store.get('seen', {});      // versão que o usuário já abriu
 const state = {};                         // versão atual de cada treinamento
@@ -403,11 +501,13 @@ function render(){
     </div>` : '');
 
   document.querySelectorAll('a.card').forEach(a=>{
-    a.addEventListener('click', ()=>{
+    a.addEventListener('click', e=>{
       const t = TRAININGS.find(x=>x.id===a.dataset.id), s = state[t.id];
       if(s && s.v){ seen[t.id] = s.v; store.set('seen', seen); }
       a.href = withVersion(t.url, s && s.v ? s.v : Date.now().toString(36));
       setTimeout(()=>paint(t), 50);
+      // no app instalado não existe botão "voltar": o simulador abre dentro da Central
+      if(STANDALONE && !e.metaKey && !e.ctrlKey){ e.preventDefault(); openViewer(t, a.href); }
     });
   });
 }
