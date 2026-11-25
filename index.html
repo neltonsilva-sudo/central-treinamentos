@@ -225,7 +225,10 @@ footer .wrap > div{display:flex; flex-wrap:wrap; justify-content:space-between; 
   border-radius:16px; display:flex; align-items:center; gap:4px; cursor:pointer}
 .vbar button:focus-visible{outline:3px solid rgba(99,102,241,.7); outline-offset:2px}
 .vbar span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.8}
-.viewer iframe{flex:1; width:100%; border:0; background:#000}
+.vstack{flex:1; position:relative}
+.vstack iframe{position:absolute; inset:0; width:100%; height:100%; border:0; background:#000}
+.vstack iframe.under{visibility:hidden}      /* camada de baixo continua rodando (sincronismo), só não aparece */
+.vbar b{font-weight:600}
 body.viewing{overflow:hidden}
 .install-tip{position:fixed; inset:0; z-index:70; display:grid; place-items:center; padding:16px; background:rgba(5,8,20,.5); overflow:auto}
 .install-tip[hidden]{display:none}
@@ -302,10 +305,10 @@ body.viewing{overflow:hidden}
 
 <div class="viewer" id="viewer" hidden>
   <div class="vbar">
-    <button type="button" id="vback" aria-label="Voltar para a Central"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Central</button>
+    <button type="button" id="vback" aria-label="Voltar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><b id="vbackTxt">Central</b></button>
     <span id="vtitle"></span>
   </div>
-  <iframe id="vframe" title="Simulador" allow="camera; microphone; fullscreen; autoplay; accelerometer; gyroscope; xr-spatial-tracking" allowfullscreen></iframe>
+  <div class="vstack" id="vstack"></div>
 </div>
 
 <div class="install-tip" id="installTip" hidden>
@@ -327,7 +330,7 @@ body.viewing{overflow:hidden}
    ========================================================== */
 const OWNER = 'neltonsilva-sudo';
 // versão desta página: ao publicar, a central se recarrega sozinha em quem ainda estiver com a cópia antiga
-const BUILD = '2026-11-24 23:50';
+const BUILD = '2026-11-25 00:20';
 (async function selfUpdate(){
   const el = document.getElementById('build'); if(el) el.textContent = 'v' + BUILD;
   try{
@@ -460,23 +463,83 @@ const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platfo
 const IS_ANDROID = /Android/.test(navigator.userAgent);
 let installEvt = null;
 
+/* Simuladores dentro do app, em camadas: quando um simulador abre outra página (window.open ou link
+   "_blank" do mesmo site, ex.: Hematech → Setor 3), ela abre por cima, sem barra de endereço, e a
+   página de baixo continua rodando (o Hematech e o Setor 3 ficam sincronizados). */
+const layers = [];                      // {frame, title}
+const FRAME_ALLOW = 'camera; microphone; fullscreen; autoplay; accelerometer; gyroscope; xr-spatial-tracking';
+function sameSite(u){ try{ return new URL(u, location.href).origin === location.origin; }catch(e){ return false; } }
+function vbarSync(){
+  const top = layers[layers.length-1], prev = layers[layers.length-2];
+  $('#vtitle').textContent = top ? top.title : '';
+  $('#vbackTxt').textContent = prev ? prev.title : 'Central';
+  $('#vback').setAttribute('aria-label', prev ? 'Voltar para ' + prev.title : 'Voltar para a Central');
+}
+function frameTitle(f, fallback){
+  try{ const t = (f.contentDocument.title || '').split(/\s[·|–—-]\s/)[0].trim(); if(t) return t.slice(0, 40); }catch(e){}
+  return fallback;
+}
+function hookFrame(L){
+  let w; try{ w = L.frame.contentWindow; if(!w || w.location.href === 'about:blank') return; w.document; }catch(e){ return; }  // outro site: não mexe
+  L.title = frameTitle(L.frame, L.title); vbarSync();
+  const nativeOpen = w.open.bind(w);
+  w.open = function(u, name, feats){
+    if(u && sameSite(u) && (!name || !/^_(self|parent|top)$/i.test(name))){
+      return pushLayer(new URL(u, w.location.href).href, '…');
+    }
+    if(u && sameSite(u)){ L.frame.contentWindow.location.replace(new URL(u, w.location.href).href); return L.frame.contentWindow; }
+    return nativeOpen(u, name, feats);   // página em branco (impressão) ou outro site: comportamento normal
+  };
+  w.document.addEventListener('click', e=>{
+    const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if(!a || e.defaultPrevented || !sameSite(a.href)) return;
+    const tg = (a.getAttribute('target') || '').toLowerCase();
+    if(tg === '_blank' || (tg && !/^_(self|parent|top)$/.test(tg))){ e.preventDefault(); pushLayer(a.href, '…'); }
+    else if(tg === '_top' || tg === '_parent'){ e.preventDefault(); w.location.assign(a.href); }
+  }, true);
+}
+function pushLayer(url, title){
+  layers.forEach(l=>l.frame.classList.add('under'));
+  const f = document.createElement('iframe');
+  f.title = title; f.allow = FRAME_ALLOW; f.allowFullscreen = true;
+  const L = {frame:f, title};
+  f.addEventListener('load', ()=>hookFrame(L));
+  f.src = url;
+  $('#vstack').appendChild(f);
+  layers.push(L); vbarSync();
+  history.pushState({viewer:true, depth:layers.length}, '');   // o "voltar" do celular fecha a camada de cima
+  return f.contentWindow;
+}
+function popLayer(){
+  const L = layers.pop(); if(!L) return;
+  try{ L.frame.src = 'about:blank'; }catch(e){}            // libera a memória do 3D
+  L.frame.remove();
+  const top = layers[layers.length-1]; if(top) top.frame.classList.remove('under');
+  vbarSync();
+}
 function openViewer(t, url){
-  $('#vtitle').textContent = t.title;
-  $('#vframe').src = url;
+  while(layers.length) popLayer();
   $('#viewer').hidden = false;
   document.body.classList.add('viewing');
-  history.pushState({viewer:t.id}, '');   // o "voltar" do Android fecha o simulador
+  pushLayer(url, t.title);
   $('#vback').focus();
 }
 function closeViewer(){
   if($('#viewer').hidden) return;
+  while(layers.length) popLayer();
   $('#viewer').hidden = true;
   document.body.classList.remove('viewing');
-  $('#vframe').src = 'about:blank';      // libera a memória do 3D
   check(false);
 }
-$('#vback').addEventListener('click', ()=>{ if(history.state && history.state.viewer) history.back(); else closeViewer(); });
-addEventListener('popstate', closeViewer);
+$('#vback').addEventListener('click', ()=>{
+  if(history.state && history.state.viewer) history.back();
+  else if(layers.length > 1) popLayer(); else closeViewer();
+});
+addEventListener('popstate', e=>{
+  const depth = (e.state && e.state.viewer) ? e.state.depth : 0;
+  while(layers.length > Math.max(depth, 0)) popLayer();
+  if(!layers.length) closeViewer();
+});
 
 (function(){
   const btn = $('#install');
